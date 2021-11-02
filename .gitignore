@@ -1247,3 +1247,4 @@ test/codesniffer/tests/nbproject/project.xml
 test/codesniffer/tests/nbproject/private/phpcsmd.xml
 test/codesniffer/tests/nbproject/private/private.properties
 test/codesniffer/tests/nbproject/private/private.xml
+test/session.txt
