@@ -25,12 +25,7 @@ $data = array(
 );
 
 if (isset($_POST)) {
-    foreach (['operation', 'base'] as $variableName) {
-        $$variableName = isset($_REQUEST[$variableName]) ? strval($_REQUEST[$variableName]) : false;
-        print $variableName.' => '.$$variableName."<br>";
-    }
-
-    foreach (['number1', 'number2'] as $variableName) {
+    foreach (['number1', 'number2', 'operation', 'base', 'result'] as $variableName) {
         $$variableName = isset($_REQUEST[$variableName]) ? strval($_REQUEST[$variableName]) : false;
         print $variableName.' => '.$$variableName."<br>";
     }
@@ -40,29 +35,47 @@ if (isset($_POST)) {
     }
 }
 
-switch ($operation) {
-    case '+':
-        $res = $number1 + $number2;
-        break;
-    case '-':
-        $res = $number1 - $number2;
-        break;
-    case '*':
-        $res = $number1 * $number2;
-        break;
-    case '/':
-        $res = $number1 / $number2;
-        break;
-    default:
-        $res = 'error';
-        break;
+if ($base)
+    $data['error'] = checkErrors($number1, $number2, $operation, $base, $result, $basesArr);
+
+if ($data['error'] == '') {
+    $data['result'] = calculate($number1, $number2, $result, $operation, $basesArr[$base]['alphabet']);
+}
+
+
+
+function calculate($__num1, $__num2, $__result, $__operation, $__alphabet){
+    
+    if ($__num1 == '' && $__result != '') {
+        $__num1 = $__result;
     }
 
-if($base)
-    $data['error'] = checkErrors($number1, $number2, $operation, $base, $basesArr);
-
-$data['result'] = $res;
+    if ($__num2 == '' && $__result != '') {
+        $__num2 = $__num1;
+        $__num1 = $__result;
+    }
     
+    $__num1 = toDec($__num1, $__alphabet);
+    $__num2 = toDec($__num2, $__alphabet);
+    var_dump($__num1);
+    var_dump($__num2);
+
+    switch ($__operation) {
+        case '+':
+            return fromDec($__num1 + $__num2, $__alphabet);
+        case '-':
+            return fromDec($__num1 - $__num2, $__alphabet);
+        case '*':
+            return fromDec($__num1 * $__num2, $__alphabet);
+        case '/':
+            return fromDec($__num1 / $__num2, $__alphabet);
+        default:
+            return -1;
+    }
+
+}
+
+
 /**
  * Проверяет введенные данные на наличие ошибок
  * 
@@ -70,14 +83,23 @@ $data['result'] = $res;
  * @param string  $__num2      Второе число.
  * @param string  $__operation Выбранная операция.
  * @param string  $__base      Выбранная СС.
+ * @param string  $__result    Результат выполнения предыдущей операции.
  * @param array   $__basesArr  Массив с СС.
  * 
  * @return string Сообщение об ошибке.
  */
-function checkErrors(string $__num1, string $__num2, string $__operation, string $__base, array $__basesArr){
+function checkErrors(string $__num1, string $__num2, string $__operation, string $__base, string $__result, array $__basesArr){
 
     if (!$__num1 && !$__num2) {
         return 'Поля не заполнены';
+    }
+
+    if ($__num1 == '' && $__result == ''){
+        return 'Первое поле не заполнено';
+    }
+
+    if ($__num2 == '' && $__result == ''){
+        return 'Второе поле не заполнено';
     }
 
     if (!$__operation) {
@@ -100,6 +122,21 @@ function checkErrors(string $__num1, string $__num2, string $__operation, string
 
     if (toDec($__num2, $alphabet) == 0 && $__operation == '/') {
         return 'Деление на 0';
+    }
+
+    $decNum1 = toDec($__num1, $alphabet);
+    $decNum2 = toDec($__num2, $alphabet);
+
+    if($decNum1 < 0){
+        return 'Первое число - отрицательное';
+    }
+
+    if($decNum2 < 0){
+        return 'Второе число - отрицательное';
+    }
+
+    if ($decNum1 < $decNum2 && $__operation == '-') {
+        return 'Отрицательные числа не поддерживаются';
     }
 
     return '';
