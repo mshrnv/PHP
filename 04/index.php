@@ -1,5 +1,5 @@
 <?php
-  require "calculate.php";
+require "calculate.php";
 ?>
 
 <!DOCTYPE html>
@@ -34,12 +34,12 @@
               </div>
               <div class="input-group input-group-sm mb-3">
                 <span class="input-group-text" id="inputGroup-sizing-sm">Результат</span>
-                <input name="result" value = "<?php echo $data['result']; ?>" type="text" class="form-control" readonly>
+                <input name="result" value = "<?php echo $dataArr['result']; ?>" type="text" class="form-control" readonly>
                 
               </div>
               <div class="input-group input-group-sm mb-3">
                 <span class="input-group-text" id="inputGroup-sizing-sm">Сообщение об ошибке</span>
-                <input name="error" value = "<?php echo $data['error']; ?>" type="text" class="form-control" readonly>
+                <input name="error" value = "<?php echo $dataArr['error']; ?>" type="text" class="form-control" readonly>
               </div>
         </form>
     </div>
