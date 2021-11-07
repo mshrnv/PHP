@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Guest book</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/book.css">
+</head>
+<body>
+
+    <nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+        <a class="navbar-brand" href="#" style="margin-left: 20px;">
+            <img src="img/ibooks.png" width="30" height="30" class="d-inline-block align-top" alt="">
+            GuestBook
+        </a>
+        <form class="form-inline my-2 my-lg-0" style="margin-right: 15px;">
+            <span class="navbar-text">
+            @{Username}
+            </span>
+            <input class="btn btn-outline-danger" type="submit" value="Log out">
+        </form>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+        <div class="col-md-9">
+
+            <nav aria-label="...">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1">1</a>
+                    </li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                </ul>
+            </nav>
+
+            <div class="container">
+
+                <div class="message border">
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+                    <strong class="mb-1">List group item heading</strong>
+                    <small class="text-muted">Tues</small>
+                    </div>
+                    <div class="col-10 mb-1 small">Some placeholder content in a paragraph below the heading and date.</div>
+                </div>
+                <div class="message border">
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+                    <strong class="mb-1">List group item heading</strong>
+                    <small class="text-muted">Tues</small>
+                    </div>
+                    <div class="col-10 mb-1 small">Some placeholder content in a paragraph below the heading and date.</div>
+                </div>
+                <div class="message border">
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+                    <strong class="mb-1">List group item heading</strong>
+                    <small class="text-muted">Tues</small>
+                    </div>
+                    <div class="col-10 mb-1 small">Some placeholder content in a paragraph below the heading and date.</div>
+                </div>
+                <div class="message border">
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+                    <strong class="mb-1">List group item heading</strong>
+                    <small class="text-muted">Tues</small>
+                    </div>
+                    <div class="col-10 mb-1 small">Some placeholder content in a paragraph below the heading and date.</div>
+                </div>
+                <div class="message border">
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+                    <strong class="mb-1">List group item heading</strong>
+                    <small class="text-muted">Tues</small>
+                    </div>
+                    <div class="col-10 mb-1 small">Some placeholder content in a paragraph below the heading and date.</div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+            <form>
+                <textarea class="form-control" placeholder="Message" rows="3"></textarea>
+                <input class="btn btn-outline-success btn-block" type="submit" value="Send Message!">
+            </form>
+        </div>
+        </div>
+    </div>
+</body>
+</html>
