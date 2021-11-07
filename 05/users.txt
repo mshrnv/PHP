@@ -1,0 +1,1 @@
+a:2:{s:5:"admin";a:2:{s:8:"password";s:32:"63a9f0ea7bb98050796b649e85481845";s:12:"access_level";i:1;}s:5:"misha";a:2:{s:8:"password";s:32:"3a096b9fe19fedd4636f217ef0c6e33f";s:12:"access_level";i:2;}}
