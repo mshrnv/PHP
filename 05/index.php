@@ -373,15 +373,15 @@ function printSignInForm(bool $__errorFlag)
     </head>
     <body class="text-center">
         <div>
-        <form class="form-signin" method="post">
-            <img class="mb-4" src="img/ibooks.png" alt="guestbook" width="72" height="72">
-            <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-            <input name="username" type="text" class="form-control" placeholder="Username" autofocus="">
-            <input name="password" type="password" class="form-control" placeholder="Password">
-            <button name="action" class="btn btn-lg btn-outline-primary btn-block" type="submit" value="SignIn">Sign in</button>
-            <button name="action" class="btn btn-lg btn-outline-primary btn-block" type="submit" value="SignInAsGuest">Sign in as guest</button>
-        </form>
-        '.($__errorFlag ? getAuthError() : '').'
+            <form class="form-signin" method="post">
+                <img class="mb-4" src="img/ibooks.png" alt="guestbook" width="72" height="72">
+                <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+                <input name="username" type="text" class="form-control" placeholder="Username" autofocus="">
+                <input name="password" type="password" class="form-control" placeholder="Password">
+                <button name="action" class="btn btn-lg btn-outline-primary btn-block" type="submit" value="SignIn">Sign in</button>
+                <button name="action" class="btn btn-lg btn-outline-primary btn-block" type="submit" value="SignInAsGuest">Sign in as guest</button>
+            </form>
+            '.($__errorFlag ? getAuthError() : '').'
         </div></body></html>';
 }
 
