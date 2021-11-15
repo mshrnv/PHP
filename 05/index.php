@@ -5,7 +5,7 @@ session_start();
 date_default_timezone_set('Europe/Moscow');
 
 #Константа - количество сообщений на странице
-define("messagesOnPage", 5);
+define("MESSAGES_ON_PAGE", 5);
 
 #Инициализация имени файла с пользователями, флага ошибки авторизации
 $usersFileName = 'users.txt';
@@ -15,7 +15,7 @@ $authErrorFlag = false;
 $usersArr = unserialize(file_get_contents($usersFileName));
 
 #Блок обработки параметров
-foreach (array('username', 'password', 'action', 'message', 'delete', 'page', 'guestname') as $variableName) {
+foreach (array('username', 'password', 'action', 'message', 'deleteMessageId', 'page', 'guestname') as $variableName) {
 	$$variableName = isset($_POST[$variableName])
 	? htmlspecialchars($_POST[$variableName])
 	: '';
@@ -25,37 +25,37 @@ foreach (array('username', 'password', 'action', 'message', 'delete', 'page', 'g
 if ($username && $password && array_key_exists($username, $usersArr) && md5($password) === $usersArr[$username]['password']) {
     $_SESSION['username']     = $username;
     $_SESSION['access_level'] = $usersArr[$username]['access_level'];
-    header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER["SCRIPT_NAME"]);
+    reload();
 	die();
 }
 
 #Если нажата кнопка и введены неверные данные - сообщение об ошибке
-elseif ($action == 'Sign in') {
+elseif ($action == 'SignIn') {
     $authErrorFlag = true;
 }
 
 #Авторизация гостем
-if ($action == "Sign in as guest") {
+if ($action == "SignInAsGuest") {
     $_SESSION['username']     = 'guest';
     $_SESSION['access_level'] = 3;
-    header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER["SCRIPT_NAME"]);
+    reload();
 	die();
 }
 
 #Выход из сесии пользователя
-if ($action == "Log out") {
+if ($action == "LogOut") {
     session_destroy();
-    header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER["SCRIPT_NAME"]);
+    reload();
 	die();
 }
 
-#Удаление сообщения: в $delete лежит id сообщения, которое удаляется
-if ($delete != '') {
-    deleteMessage($delete);
+#Удаление сообщения
+if ($deleteMessageId != '') {
+    deleteMessage($deleteMessageId);
 }
 
 #Отправка нового сообщения
-if ($action == "Send Message" && trim($message) != '') {
+if ($action == "SendMessage" && trim($message) != '') {
     sendMessage($message, $_SESSION['access_level'] == 3 ? $guestname : $_SESSION['username']);
 }
 
@@ -65,7 +65,7 @@ if ($page == '') {
 }
 
 #Вычисление количества страниц с сообщениями
-$numberOfPages = ceil(getMessagesCount() / messagesOnPage);
+$numberOfPages = ceil(getMessagesCount() / MESSAGES_ON_PAGE);
 
 #Если юзер авторизован - выводим гостевую книгу
 if (isAuthorized()) {
@@ -177,7 +177,7 @@ function getMessagesArr()
 /**
  * Возвращает количество всех сообщений, хранящихся в книге
  * 
- * @return int Количсетво сообщений.
+ * @return int Количество сообщений.
  */
 function getMessagesCount()
 {
@@ -200,10 +200,10 @@ function getMessages(int $__currentPage)
     $messagesArr = array_reverse(getMessagesArr());
 
     #Вычисление id первого сообщения на странице
-    $start = ($__currentPage - 1) * messagesOnPage;
+    $start = ($__currentPage - 1) * MESSAGES_ON_PAGE;
 
     #Поочередный вывод сообщений
-    for ($messageId = $start; $messageId < $start + messagesOnPage; $messageId++) {
+    for ($messageId = $start; $messageId < $start + MESSAGES_ON_PAGE; $messageId++) {
 
         #Обработка случая, когда на странице недостаточно сообщений
         if (!isset($messagesArr[$messageId])) {
@@ -258,7 +258,7 @@ function getCloseButton(string $__username, int $__id)
 
         #Если да, то возвращаем кнопку удаления
         return '<form method="post" style="position: absolute; top: 5px; right: 5px;">
-                    <button name="delete" value='.$__id.' type="submit" style="border:none; background:none;">
+                    <button name="deleteMessageId" value='.$__id.' type="submit" style="border:none; background:none;">
                         <img src="img/close.png" style="width:15px;">
                     </button>
                 </form>';
@@ -343,6 +343,16 @@ function unserializeMessages(string $__messages)
 }
 
 /**
+ * Обновляет текущую страницу
+ *
+ * @return void
+ */
+function reload()
+{
+    header("Location: http://" . $_SERVER['SERVER_NAME'] . $_SERVER["SCRIPT_NAME"]);
+}
+
+/**
  * Выводит форму авторизации и сообщение об ошибке если установлен флаг.
  *
  * @param boolean $__errorFlag Флаг ошибки авторизации.
@@ -368,8 +378,8 @@ function printSignInForm(bool $__errorFlag)
             <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
             <input name="username" type="text" class="form-control" placeholder="Username" autofocus="">
             <input name="password" type="password" class="form-control" placeholder="Password">
-            <input name="action" class="btn btn-lg btn-outline-primary btn-block" type="submit" value="Sign in"></input>
-            <input name="action" class="btn btn-lg btn-outline-primary btn-block" type="submit" value="Sign in as guest"></input>
+            <button name="action" class="btn btn-lg btn-outline-primary btn-block" type="submit" value="SignIn">Sign in</button>
+            <button name="action" class="btn btn-lg btn-outline-primary btn-block" type="submit" value="SignInAsGuest">Sign in as guest</button>
         </form>
         '.($__errorFlag ? getAuthError() : '').'
         </div></body></html>';
@@ -404,9 +414,9 @@ function printGuestBook(int $__numberOfPages, int $__currentPage)
             </a>
             <form method="post" class="form-inline my-2 my-lg-0" style="margin-right: 15px;">
                 <span class="navbar-text badge badge-success" style="margin-right: 10px; font-size: 14px;">
-                Hi, '.$_SESSION['username'].'     <img src="img/hand.png" width="20">  
+                Hi, '.$_SESSION['username']. '     <img src="img/hand.png" width="20">  
                 </span>
-                <input name="action" class="btn btn-outline-danger" type="submit" value="Log out">
+                <button name="action" class="btn btn-outline-danger" type="submit" value="LogOut">Log out</button>
             </form>
         </nav>
     
@@ -428,9 +438,9 @@ function printGuestBook(int $__numberOfPages, int $__currentPage)
                 <form method="post">
                     '.($_SESSION["access_level"] == 3
                     ? '<input name="guestname" type="text" class="form-control" placeholder="Username" required="" autofocus="" style="margin-bottom: 15px;">'
-                    : '').'
+                    : ''). '
                     <textarea name="message" class="form-control" placeholder="Message" rows="3" required="" style="margin-bottom: 15px;"></textarea>
-                    <input name="action" class="btn btn-outline-success btn-block" type="submit" value="Send Message">
+                    <button name="action" class="btn btn-outline-success btn-block" type="submit" value="SendMessage">Send Message</button>
                 </form>
             </div>
             </div>
