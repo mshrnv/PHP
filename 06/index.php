@@ -4,19 +4,27 @@
 session_start();
 date_default_timezone_set('Europe/Moscow');
 
-#Константы - количество сообщений на странице
+#Константы
 define("MESSAGES_ON_PAGE", 5);
 define("PAGES_AROUND", 2);
+define("USERS_FILE_NAME", 'users.txt');
+define("GUESTBOOK_FILE_NAME", 'guestbook.txt');
+// $usersArr = [
+//     'admin' => ['password' => md5('1'), 'access_level' => 1],
+//     'root' => ['password' => md5('toor'), 'access_level' => 1],
+//     'misha' => ['password' => md5('smd'), 'access_level' => 2],
+//     'user' => ['password' => md5('user'), 'access_level' => 2],
+// ];   => В README
 
-#Инициализация имени файла с пользователями, флага ошибки авторизации
-$usersFileName = 'users.txt';
+#Инициализация флага ошибки авторизации
 $authErrorFlag = false;
 
 #Получение данных о пользователях
-$usersArr = unserialize(file_get_contents($usersFileName));
+$usersArr = unserialize(file_get_contents(USERS_FILE_NAME));
 
 #Блок обработки параметров
-foreach (array('username', 'password', 'action', 'message', 'deleteMessageId', 'page', 'guestname') as $variableName) {
+foreach (array('username', 'password', 'action', 'message',
+        'deleteMessageId', 'editMessageId', 'page', 'guestname') as $variableName) {
 	$$variableName = isset($_POST[$variableName])
 	? htmlspecialchars($_POST[$variableName])
 	: '';
@@ -26,6 +34,7 @@ foreach (array('username', 'password', 'action', 'message', 'deleteMessageId', '
 if ($username && $password && array_key_exists($username, $usersArr) && md5($password) === $usersArr[$username]['password']) {
     $_SESSION['username']     = $username;
     $_SESSION['access_level'] = $usersArr[$username]['access_level'];
+    $_SESSION['page']         = 1;
     reload();
 	die();
 }
@@ -39,6 +48,7 @@ elseif ($action == 'SignIn') {
 if ($action == "SignInAsGuest") {
     $_SESSION['username']     = 'guest';
     $_SESSION['access_level'] = 3;
+    $_SESSION['page']         = 1;
     reload();
 	die();
 }
@@ -55,14 +65,19 @@ if ($deleteMessageId != '') {
     deleteMessage($deleteMessageId);
 }
 
+# Редактирование сообщения
+if ($editMessageId != '' && trim($message) != '') {
+    editMessage($editMessageId, $message);
+}
+
 #Отправка нового сообщения
 if ($action == "SendMessage" && trim($message) != '') {
     sendMessage($message, $_SESSION['access_level'] == 3 ? $guestname : $_SESSION['username']);
 }
 
 #По умолчанию показываем первую страницу сообщений
-if ($page == '') {
-    $page = 1;
+if ($page != '') {
+    $_SESSION['page'] = $page;
 }
 
 #Вычисление количества страниц с сообщениями
@@ -70,7 +85,7 @@ $numberOfPages = ceil(getMessagesCount() / MESSAGES_ON_PAGE);
 
 #Если юзер авторизован - выводим гостевую книгу
 if (isAuthorized()) {
-    printGuestBook($numberOfPages, $page);
+    printGuestBook($numberOfPages, $_SESSION['page']);
 }
 
 #Иначе - предлагаем авторизоваться
@@ -167,7 +182,7 @@ function getPagination(int $__numberOfPages, int $__currentPage)
 }
 
 /**
- * Записывает новое сообщение в файл guestbook.txt
+ * Записывает новое сообщение в файл GUESTBOOK_FILE_NAME
  *
  * @param string $__text     Текст сообщения.
  * @param string $__username Имя пользователя.
@@ -179,18 +194,18 @@ function sendMessage(string $__text, string $__username)
 
     # Получаем массив сообщений
     $messagesArr      = getMessagesArr();
-    $messagesFileName = 'guestbook.txt';
 
     #Записываем новое сообщение
-    $messagesArr[] = array(
+    $messageArr = array(
                       'username'     => $__username,
                       'datetime'     => date('j.m.Y H:i:s'),
                       'message_text' => trim($__text),
                       'user_ip'      => $_SERVER['REMOTE_ADDR'],
     );
+    array_unshift($messagesArr, $messageArr);
 
     #Запись в файл
-    file_put_contents($messagesFileName, serialize($messagesArr));
+    file_put_contents(GUESTBOOK_FILE_NAME, serialize($messagesArr));
 }
 
 /**
@@ -202,8 +217,7 @@ function getMessagesArr()
 {
 
     #Чтение файла и его ансериалицация в массив
-    $messagesFileName = 'guestbook.txt';
-    $data             = file_get_contents($messagesFileName);
+    $data             = file_get_contents(GUESTBOOK_FILE_NAME);
     $messagesArr      = $data ? unserialize($data) : array();
 
     //
@@ -233,13 +247,13 @@ function getMessages(int $__currentPage)
 
     #Получение и реверс массива(согласно ТЗ)
     $html        = '';
-    $messagesArr = array_reverse(getMessagesArr());
+    $messagesArr = getMessagesArr();
 
-    #Вычисление id первого сообщения на странице
-    $start = ($__currentPage - 1) * MESSAGES_ON_PAGE;
+    #Вычисление id сообщений, которые выводятся на текущей странице
+    $messagesIds = getMessagesIdsOnPage($__currentPage);
 
     #Поочередный вывод сообщений
-    for ($messageId = $start; $messageId < $start + MESSAGES_ON_PAGE; $messageId++) {
+    foreach($messagesIds as $messageId) {
 
         #Обработка случая, когда на странице недостаточно сообщений
         if (!isset($messagesArr[$messageId])) {
@@ -252,10 +266,12 @@ function getMessages(int $__currentPage)
         #И заносим в HTML
         $html .= '<div class="card" style="margin-bottom: 15px;">
                     <div class="card-body" style="position: relative;">
-                        <h6 class="card-title"><b>'.$messageArr['username']."</b>\t".getIp($messageArr['user_ip']).'</h6>
-                        <p class="card-subtitle mb-2 text-muted">'.$messageArr['datetime'].'</p>
-                        <p class="card-text" style="margin-bottom:0px;">'.$messageArr['message_text'].'</p>
-                        '.getCloseButton($messageArr['username'], $messageId).'</div></div>';
+                        <h6 class="card-title"><b>'.$messageArr['username']."</b> ".getIp($messageArr['user_ip']).
+                        ' | ' . $messageArr['datetime'] . '</h6>
+                        <p class="card-text" style="margin-bottom:5px; font-size: 18px;">'.$messageArr['message_text'].'</p>'
+                        .getEditLabel($messageId).' 
+                        '.getEditAndCloseButtons($messageArr['username'], $messageId).'</div>
+                        </div>';
     }
 
     #Возвращаем HTML-код сообщений на странице
@@ -271,7 +287,7 @@ function getMessages(int $__currentPage)
  */
 function getIp(string $__ip)
 {
-    return $_SESSION['access_level'] !== 1 ? '' : $__ip;
+    return $_SESSION['access_level'] !== 1 ? '' : '| '.$__ip;
 }
 
 /**
@@ -283,7 +299,7 @@ function getIp(string $__ip)
  * 
  * @return string HTML-код или пустая строка.
  */
-function getCloseButton(string $__username, int $__id)
+function getEditAndCloseButtons(string $__username, int $__id)
 {
 
     #Определяем уровень доступа
@@ -293,7 +309,13 @@ function getCloseButton(string $__username, int $__id)
     if ($accessLevel === 1 || $accessLevel === 2 && $__username == $_SESSION['username']) {
 
         #Если да, то возвращаем кнопку удаления
-        return '<form method="post" style="position: absolute; top: 5px; right: 5px;">
+        return '<form method="post" style="position: absolute; top: 5px; right: 25px;">
+                    <button type="button" style="border:none; background:none;" 
+                    data-bs-toggle="modal" data-bs-target="#modal'.$__id.'">
+                        <img src="img/edit.png" style="width:15px;">
+                    </button>
+                </form>
+                <form method="post" style="position: absolute; top: 5px; right: 5px;">
                     <button name="deleteMessageId" value='.$__id.' type="submit" style="border:none; background:none;">
                         <img src="img/close.png" style="width:15px;">
                     </button>
@@ -317,15 +339,14 @@ function deleteMessage(int $__messageId)
 {
 
     #Получаем массив сообщений
-    $messagesFileName = 'guestbook.txt';
     $messagesArr      = getMessagesArr();
 
     #Удаляем заданное сообщение
-    unset($messagesArr[count($messagesArr) - $__messageId - 1]);
+    unset($messagesArr[$__messageId]);
 
     #Переиндексируем массив и записываем в файл
     $messagesArr = array_values($messagesArr);
-    file_put_contents($messagesFileName, serialize($messagesArr));
+    file_put_contents(GUESTBOOK_FILE_NAME, serialize($messagesArr));
 }
 
 /**
@@ -390,6 +411,7 @@ function printGuestBook(int $__numberOfPages, int $__currentPage)
         <title>Guest book</title>
         <link rel="stylesheet" href="css/bootstrap.css">
         <link rel="stylesheet" href="css/book.css">
+        <script src="js/bootstrap.min.js"></script>
     </head>
     <body>
     
@@ -430,7 +452,68 @@ function printGuestBook(int $__numberOfPages, int $__currentPage)
                 </form>
             </div>
             </div>
-        </div>
+        </div>'
+        .getModalForms($__currentPage).'
     </body>
     </html>';
+}
+
+function getModalForms(int $__currentPage)
+{
+    $html = '';
+    $idsArr = getMessagesIdsOnPage($__currentPage);
+    foreach ($idsArr as $id) {
+        $html .= '<div class="modal fade" id="modal'.$id.'" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit message</h5>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+                <div class="modal-body">
+                    <form method="post">
+                        <div class="row">
+                            <div class="col-9">
+                                <input type="text" name="message" class="form-control" placeholder="Message text">
+                            </div>
+                            <div class="col-3">
+                                <button type="submit" name="editMessageId" value="'.$id.'" class="btn btn-success">Edit</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                </div>
+            </div>
+        </div>';
+    }
+
+    return $html;
+}
+
+function getMessagesIdsOnPage($__page)
+{
+    $start = ($__page - 1) * MESSAGES_ON_PAGE;
+    return range($start, $start + MESSAGES_ON_PAGE);
+}
+
+function editMessage(int $__messageId, string $__messageText)
+{
+    $messagesArr = getMessagesArr();
+    $messagesArr[$__messageId]['message_text']    = trim($__messageText);
+    $messagesArr[$__messageId]['edited_datetime'] = date('j.m.Y H:i:s');
+    $messagesArr[$__messageId]['edited_username'] = $_SESSION['username'];
+    file_put_contents(GUESTBOOK_FILE_NAME, serialize($messagesArr));
+}
+
+function getEditLabel(int $__messageId)
+{
+    $messagesArr = getMessagesArr();
+    if (isset($messagesArr[$__messageId]['edited_username'])) {
+        return '<p class="card-subtitle text-muted">Edited by '
+                .$messagesArr[$__messageId]['edited_username'].' at '
+                .$messagesArr[$__messageId]['edited_datetime'].'
+                </p>';
+    }
+
+    return '';
 }
