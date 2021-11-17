@@ -4,8 +4,9 @@
 session_start();
 date_default_timezone_set('Europe/Moscow');
 
-#Константа - количество сообщений на странице
+#Константы - количество сообщений на странице
 define("MESSAGES_ON_PAGE", 5);
+define("PAGES_AROUND", 2);
 
 #Инициализация имени файла с пользователями, флага ошибки авторизации
 $usersFileName = 'users.txt';
@@ -88,7 +89,7 @@ function isAuthorized()
 }
 
 /**
- * Выдает сообщение о неравильно введенных данных при авторизации.
+ * Выдает сообщение о неправильно введенных данных при авторизации.
  *
  * @return string HTML-код блока с ошибкой.
  */
@@ -97,6 +98,35 @@ function getAuthError()
     return '<div class="alert alert-warning" role="alert">
                 Ошибка авторизации: проверьте введенные данные.
             </div>';
+}
+
+function paginationListRender(int $__numberOfPages, int $__currentPage)
+{
+    $pages = array();
+    for ($i = 1; $i <= $__numberOfPages; $i++) { 
+        if(abs($__currentPage - $i) <= PAGES_AROUND) {
+            $pages[] = $i;
+        }
+    }
+
+    $first = $pages[0];
+    $last  = $pages[count($pages) - 1];
+
+    if ($first == 2) {
+        array_unshift($pages, 1);
+    }
+    elseif($first >= 3) {
+        array_unshift($pages, 1, '...');
+    }
+
+    if ($last == $__numberOfPages - 1) {
+        array_push($pages, $__numberOfPages);
+    }
+    elseif ($last <= $__numberOfPages - 2) {
+        array_push($pages, '...', $__numberOfPages);
+    }
+
+    return $pages;
 }
 
 /**
@@ -109,17 +139,23 @@ function getAuthError()
  */
 function getPagination(int $__numberOfPages, int $__currentPage)
 {
+    # Получаем массив кнопок, которые надо вывести на экран
+    $pagesArr = paginationListRender($__numberOfPages, $__currentPage);
 
-    #Начало блока навигации
+    # Начало блока навигации
     $html = '<nav style="margin-top: 10px;">
                 <form method="post">
                     <ul class="pagination justify-content-center">';
 
     # Вывод кнопок навигации, кнопку с текущей страницей - выделяем цветом
-    for ($pageNumber = 1; $pageNumber <= $__numberOfPages; $pageNumber++) {
+    foreach($pagesArr as $pageNumber) {
         $html .= '<li class="page-item" style="margin-right: 5px;">
-         <button class="btn btn-'.($pageNumber != $__currentPage ? 'outline-' : '').'primary btn-sm" type="submit" name="page" value='.$pageNumber.'>'
-        .$pageNumber.
+         <button class="btn btn-'
+         .($pageNumber != $__currentPage ? 'outline-' : '')
+         .'primary btn-sm"
+         type="submit" name="page" value="'.$pageNumber.'"'
+         .($pageNumber === '...' ? ' disabled="disabled" ' : ' ').'>'
+         .$pageNumber.
         '</button></li>';
     }
 
@@ -154,7 +190,7 @@ function sendMessage(string $__text, string $__username)
     );
 
     #Запись в файл
-    file_put_contents($messagesFileName, serializeMessages($messagesArr));
+    file_put_contents($messagesFileName, serialize($messagesArr));
 }
 
 /**
@@ -168,7 +204,7 @@ function getMessagesArr()
     #Чтение файла и его ансериалицация в массив
     $messagesFileName = 'guestbook.txt';
     $data             = file_get_contents($messagesFileName);
-    $messagesArr      = $data ? unserializeMessages($data) : array();
+    $messagesArr      = $data ? unserialize($data) : array();
 
     //
     return $messagesArr;
@@ -285,61 +321,11 @@ function deleteMessage(int $__messageId)
     $messagesArr      = getMessagesArr();
 
     #Удаляем заданное сообщение
-    unset($messagesArr[count($messagesArr) - $__messageId]);
+    unset($messagesArr[count($messagesArr) - $__messageId - 1]);
 
     #Переиндексируем массив и записываем в файл
     $messagesArr = array_values($messagesArr);
-    file_put_contents($messagesFileName, serializeMessages($messagesArr));
-}
-
-/**
- * Сериализация массива в строку согласно формату из ТЗ
- *
- * @param array $__messagesArr Массив сообщений.
- * 
- * @return string Сериализованный массив сообщений.
- */
-function serializeMessages(array $__messagesArr)
-{
-
-    #Пробегаем по массиву и сворачиваем в строку по разделителям
-    $messagesArr = array();
-    foreach ($__messagesArr as $messageId => $messageArr) {
-        $messagesArr[] = $messageId.'[:||:]'.implode('[:||:]', $messageArr);
-    }
-
-    #Преобразуем массив в строку
-    return '[:|||:]'.implode('[:|||:]', $messagesArr).'[:|||:]';
-}
-
-/**
- * Ансериализация строки сообщений в массив согласно формату из ТЗ
- *
- * @param string $__messages Строка с сообщениями.
- * 
- * @return array Массив сообщений.
- */
-function unserializeMessages(string $__messages)
-{
-
-    #Разбиваем строку по разделителю сообщений и убираем пустые строки
-    $__messagesArr = explode('[:|||:]', $__messages);
-    $__messagesArr = array_diff($__messagesArr, array(''));
-    $messagesArr   = array();
-
-    #Пробегаем каждую строку с сообщением
-    foreach ($__messagesArr as $messageId => $message) {
-
-        #Добавление в итоговый массив сообщений информации о сообщении
-        $messageArr                              = explode('[:||:]', $message);
-        $messagesArr[$messageId]['username']     = $messageArr[1];
-        $messagesArr[$messageId]['datetime']     = $messageArr[2];
-        $messagesArr[$messageId]['message_text'] = $messageArr[3];
-        $messagesArr[$messageId]['user_ip']      = $messageArr[4];
-    }
-
-    #Массив всех сообщений
-    return $messagesArr;
+    file_put_contents($messagesFileName, serialize($messagesArr));
 }
 
 /**
