@@ -20,7 +20,7 @@ define("GUESTBOOK_FILE_NAME", 'guestbook.txt');
 $authErrorFlag = false;
 
 #Получение данных о пользователях
-$usersArr = unserialize(file_get_contents(USERS_FILE_NAME));
+$usersArr = unserialize(getFileContent(USERS_FILE_NAME));
 
 #Блок обработки параметров
 foreach (array('username', 'password', 'action', 'message',
@@ -205,7 +205,7 @@ function sendMessage(string $__text, string $__username)
     array_unshift($messagesArr, $messageArr);
 
     #Запись в файл
-    file_put_contents(GUESTBOOK_FILE_NAME, serialize($messagesArr));
+    putContentInFile(GUESTBOOK_FILE_NAME, serialize($messagesArr));
 }
 
 /**
@@ -217,7 +217,7 @@ function getMessagesArr()
 {
 
     #Чтение файла и его ансериалицация в массив
-    $data             = file_get_contents(GUESTBOOK_FILE_NAME);
+    $data             = getFileContent(GUESTBOOK_FILE_NAME);
     $messagesArr      = $data ? unserialize($data) : array();
 
     //
@@ -346,7 +346,7 @@ function deleteMessage(int $__messageId)
 
     #Переиндексируем массив и записываем в файл
     $messagesArr = array_values($messagesArr);
-    file_put_contents(GUESTBOOK_FILE_NAME, serialize($messagesArr));
+    putContentInFile(GUESTBOOK_FILE_NAME, serialize($messagesArr));
 }
 
 /**
@@ -502,7 +502,7 @@ function editMessage(int $__messageId, string $__messageText)
     $messagesArr[$__messageId]['message_text']    = trim($__messageText);
     $messagesArr[$__messageId]['edited_datetime'] = date('j.m.Y H:i:s');
     $messagesArr[$__messageId]['edited_username'] = $_SESSION['username'];
-    file_put_contents(GUESTBOOK_FILE_NAME, serialize($messagesArr));
+    putContentInFile(GUESTBOOK_FILE_NAME, serialize($messagesArr));
 }
 
 function getEditLabel(int $__messageId)
@@ -516,4 +516,32 @@ function getEditLabel(int $__messageId)
     }
 
     return '';
+}
+
+function getFileContent($__fileName)
+{
+    touch($__fileName);
+    $fp = fopen($__fileName, "r");
+
+    if (flock($fp, LOCK_SH)) {
+        $data = fgets($fp);
+        flock($fp, LOCK_UN);
+        return $data;
+    }
+    
+    return false;
+}
+
+function putContentInFile($__fileName, $__data)
+{
+    touch($__fileName);
+    $fp = fopen($__fileName, "w+");
+
+    if (flock($fp, LOCK_EX)) {
+        fputs($fp, $__data);
+        flock($fp, LOCK_UN);
+        return true;
+    }
+
+    return false;
 }
