@@ -1,7 +1,7 @@
 <?php
 
 # Подключаем файл с функциями
-include "library.php";
+include "guestbook.php";
 
 #Начинаем сессию и устанавливаем временную зону
 session_start();
