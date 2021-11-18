@@ -155,12 +155,12 @@ function paginationListRender(int $__numberOfPages, int $__currentPage)
 /**
  * Возвращает HTML-код кнопок навигации между страницами.
  *
- * @param integer $__numberOfPages Общее количество страниц.
  * @param integer $__currentPage   Текущая,выбранная страница.
+ * @param integer $__numberOfPages Общее количество страниц.
  * 
  * @return string HTML-код кнопок навгации.
  */
-function getPagination(int $__numberOfPages, int $__currentPage)
+function getPagination(int $__currentPage, int $__numberOfPages)
 {
     # Получаем массив кнопок, которые надо вывести на экран
     $pagesArr = paginationListRender($__numberOfPages, $__currentPage);
@@ -218,11 +218,12 @@ function getMessagesCount()
 /**
  * Возвращает HTML-код блоков с сообщениями на заданной странице
  *
- * @param integer $__currentPage Номер страницы.
+ * @param integer $__currentPage   Номер страницы.
+ * @param integer $__numberOfPages Количество страниц.
  * 
  * @return string HTML-код всех сообщений на странице.
  */
-function getMessages(int $__currentPage)
+function getMessages(int $__currentPage, int $__numberOfPages)
 {
 
     #Получение и реверс массива(согласно ТЗ)
@@ -230,7 +231,7 @@ function getMessages(int $__currentPage)
     $messagesArr = getMessagesArr();
 
     #Вычисление id сообщений, которые выводятся на текущей странице
-    $messagesIds = getMessagesIdsOnPage($__currentPage);
+    $messagesIds = getMessagesIdsOnPage($__currentPage, $__numberOfPages);
 
     #Поочередный вывод сообщений
     foreach ($messagesIds as $messageId) {
@@ -406,11 +407,11 @@ function printGuestBook(int $__numberOfPages, int $__currentPage)
             <div class="row">
             <div class="col-md-9">
 
-                ' . getPagination($__numberOfPages, $__currentPage) . '                    
+                ' . getPagination($__currentPage, $__numberOfPages) . '                    
     
                 <div class="container">
     
-                    ' . getMessages($__currentPage) . '
+                    ' . getMessages($__currentPage, $__numberOfPages) . '
     
                 </div>
     
@@ -427,7 +428,7 @@ function printGuestBook(int $__numberOfPages, int $__currentPage)
             </div>
             </div>
         </div>'
-        . getModalForms($__currentPage) . '
+        . getModalForms($__currentPage, $__numberOfPages) . '
     </body>
     </html>';
 }
@@ -435,15 +436,16 @@ function printGuestBook(int $__numberOfPages, int $__currentPage)
 /**
  * Возвращает HTML-код модальных форм для изменения сообщений
  *
- * @param integer $__currentPage Номер страницы.
+ * @param integer $__currentPage   Номер страницы.
+ * @param integer $__numberOfPages Количество страниц.
  * 
  * @return string HTML-код.
  */
-function getModalForms(int $__currentPage)
+function getModalForms(int $__currentPage, $__numberOfPages)
 {
 
     # Вытаскиваем массив сообщений на текущей странице
-    $idsArr = getMessagesIdsOnPage($__currentPage);
+    $idsArr = getMessagesIdsOnPage($__currentPage, $__numberOfPages);
     $html = '';
 
     # Генерируем HTML-код формы изменения для каждого сообщения
@@ -538,15 +540,23 @@ function putContentInFile(string $__fileName, string $__data)
 /**
  * Возвращает массив ID сообщений, которые находятся на странице $__page
  *
- * @param integer $__page Номер страницы.
+ * @param integer $__page          Номер страницы.
+ * @param integer $__numberOfPages Количество страниц.
  * 
  * @return array Массив из ID сообщений.
  */
-function getMessagesIdsOnPage(int $__page)
+function getMessagesIdsOnPage(int $__page, int $__numberOfPages)
 {
-
-    # Вичсляем ID первого сообщения и возвращаем MESSAGE_ON_PAGE - 1 следующих
+    
+    # Вычисляем ID первого сообщения
     $start = ($__page - 1) * MESSAGES_ON_PAGE;
+
+    # Если страница последняя - возвращаем до крайнего сообщения
+    if ($__page == $__numberOfPages) {
+        return range($start, getMessagesCount() - 1);
+    }
+
+    # Иначе возвращаем MESSAGE_ON_PAGE - 1 последующих сообщений
     return range($start, $start + MESSAGES_ON_PAGE - 1);
 }
 
