@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * Обновляет текущую страницу
+ *
+ * @return void
+ */
+function reload()
+{
+    header("Location: http://" . $_SERVER['SERVER_NAME'] . $_SERVER["SCRIPT_NAME"]);
+}
+
+/**
  * Определяет: авторизован пользователь или нет.
  *
  * @return boolean true - авторизован, false - нет.
@@ -20,6 +30,79 @@ function getAuthError()
     return '<div class="alert alert-warning" role="alert">
                 Ошибка авторизации: проверьте введенные данные.
             </div>';
+}
+
+/**
+ * Записывает новое сообщение в файл GUESTBOOK_FILE_NAME
+ *
+ * @param string $__text     Текст сообщения.
+ * @param string $__username Имя пользователя.
+ * 
+ * @return void
+ */
+function sendMessage(string $__text, string $__username)
+{
+
+    # Получаем массив сообщений
+    $messagesArr      = getMessagesArr();
+
+    #Записываем новое сообщение
+    $messageArr = array(
+        'username'     => $__username,
+        'datetime'     => date('j.m.Y H:i:s'),
+        'message_text' => trim($__text),
+        'user_ip'      => $_SERVER['REMOTE_ADDR'],
+    );
+    array_unshift($messagesArr, $messageArr);
+
+    #Запись в файл
+    putContentInFile(GUESTBOOK_FILE_NAME, serialize($messagesArr));
+}
+
+/**
+ * Редактирует сообщение гостевой книги
+ *
+ * @param integer $__messageId   ID сообщения.
+ * @param string  $__messageText Текст сообщения.
+ * 
+ * @return void
+ */
+function editMessage(int $__messageId, string $__messageText)
+{
+
+    #Получаем массив сообщений
+    $messagesArr = getMessagesArr();
+
+    #Изменяем поле с текстом сообщения
+    $messagesArr[$__messageId]['message_text'] = trim($__messageText);
+
+    #Добавляем два новых поля: дата изменения, username изменявшего
+    $messagesArr[$__messageId]['edited_datetime'] = date('j.m.Y H:i:s');
+    $messagesArr[$__messageId]['edited_username'] = $_SESSION['username'];
+
+    #Запись в файл
+    putContentInFile(GUESTBOOK_FILE_NAME, serialize($messagesArr));
+}
+
+/**
+ * Удаляет сообщение.
+ *
+ * @param integer $__messageId ID сообщения.
+ * 
+ * @return void
+ */
+function deleteMessage(int $__messageId)
+{
+
+    #Получаем массив сообщений
+    $messagesArr      = getMessagesArr();
+
+    #Удаляем заданное сообщение
+    unset($messagesArr[$__messageId]);
+
+    #Переиндексируем массив и записываем в файл
+    $messagesArr = array_values($messagesArr);
+    putContentInFile(GUESTBOOK_FILE_NAME, serialize($messagesArr));
 }
 
 /**
@@ -103,79 +186,6 @@ function getPagination(int $__numberOfPages, int $__currentPage)
 
     #Возвращаем HTML код
     return $html;
-}
-
-/**
- * Записывает новое сообщение в файл GUESTBOOK_FILE_NAME
- *
- * @param string $__text     Текст сообщения.
- * @param string $__username Имя пользователя.
- * 
- * @return void
- */
-function sendMessage(string $__text, string $__username)
-{
-
-    # Получаем массив сообщений
-    $messagesArr      = getMessagesArr();
-
-    #Записываем новое сообщение
-    $messageArr = array(
-        'username'     => $__username,
-        'datetime'     => date('j.m.Y H:i:s'),
-        'message_text' => trim($__text),
-        'user_ip'      => $_SERVER['REMOTE_ADDR'],
-    );
-    array_unshift($messagesArr, $messageArr);
-
-    #Запись в файл
-    putContentInFile(GUESTBOOK_FILE_NAME, serialize($messagesArr));
-}
-
-/**
- * Редактирует сообщение гостевой книги
- *
- * @param integer $__messageId   ID сообщения.
- * @param string  $__messageText Текст сообщения.
- * 
- * @return void
- */
-function editMessage(int $__messageId, string $__messageText)
-{
-
-    #Получаем массив сообщений
-    $messagesArr = getMessagesArr();
-
-    #Изменяем поле с текстом сообщения
-    $messagesArr[$__messageId]['message_text'] = trim($__messageText);
-
-    #Добавляем два новых поля: дата изменения, username изменявшего
-    $messagesArr[$__messageId]['edited_datetime'] = date('j.m.Y H:i:s');
-    $messagesArr[$__messageId]['edited_username'] = $_SESSION['username'];
-
-    #Запись в файл
-    putContentInFile(GUESTBOOK_FILE_NAME, serialize($messagesArr));
-}
-
-/**
- * Удаляет сообщение.
- *
- * @param integer $__messageId ID сообщения.
- * 
- * @return void
- */
-function deleteMessage(int $__messageId)
-{
-
-    #Получаем массив сообщений
-    $messagesArr      = getMessagesArr();
-
-    #Удаляем заданное сообщение
-    unset($messagesArr[$__messageId]);
-
-    #Переиндексируем массив и записываем в файл
-    $messagesArr = array_values($messagesArr);
-    putContentInFile(GUESTBOOK_FILE_NAME, serialize($messagesArr));
 }
 
 /**
@@ -299,13 +309,28 @@ function getEditAndCloseButtons(string $__username, int $__id)
 }
 
 /**
- * Обновляет текущую страницу
+ * Возвращает HTML-код текста об изменении сообщения
  *
- * @return void
+ * @param integer $__messageId IВ сообщения.
+ * 
+ * @return string HTML-код или пустая строка.
  */
-function reload()
+function getEditLabel(int $__messageId)
 {
-    header("Location: http://" . $_SERVER['SERVER_NAME'] . $_SERVER["SCRIPT_NAME"]);
+
+    #Получаем массив сообщений
+    $messagesArr = getMessagesArr();
+
+    #Если оно было изменено, то выводим доп информаицю об изменении в отдельный абзац
+    if (isset($messagesArr[$__messageId]['edited_username'])) {
+        return '<p class="card-subtitle text-muted">Edited by '
+            . $messagesArr[$__messageId]['edited_username'] . ' at '
+            . $messagesArr[$__messageId]['edited_datetime'] . '
+                </p>';
+    }
+
+    #Если сообщение не изменялось - пустая строка
+    return '';
 }
 
 /**
@@ -453,48 +478,6 @@ function getModalForms(int $__currentPage)
 }
 
 /**
- * Возвращает массив ID сообщений, которые находятся на странице $__page
- *
- * @param integer $__page Номер страницы.
- * 
- * @return array Массив из ID сообщений.
- */
-function getMessagesIdsOnPage(int $__page)
-{
-
-    # Вичсляем ID первого сообщения и возвращаем MESSAGE_ON_PAGE - 1 следующих
-    $start = ($__page - 1) * MESSAGES_ON_PAGE;
-    return range($start, $start + MESSAGES_ON_PAGE - 1);
-}
-
-
-
-/**
- * Возвращает HTML-код текста об изменении сообщения
- *
- * @param integer $__messageId IВ сообщения.
- * 
- * @return string HTML-код или пустая строка.
- */
-function getEditLabel(int $__messageId)
-{
-
-    #Получаем массив сообщений
-    $messagesArr = getMessagesArr();
-
-    #Если оно было изменено, то выводим доп информаицю об изменении в отдельный абзац
-    if (isset($messagesArr[$__messageId]['edited_username'])) {
-        return '<p class="card-subtitle text-muted">Edited by '
-            . $messagesArr[$__messageId]['edited_username'] . ' at '
-            . $messagesArr[$__messageId]['edited_datetime'] . '
-                </p>';
-    }
-
-    #Если сообщение не изменялось - пустая строка
-    return '';
-}
-
-/**
  * Получает данные из файла, используя разделяемую блокировку
  *
  * @param string $__fileName Имя входного файла.
@@ -550,6 +533,21 @@ function putContentInFile(string $__fileName, string $__data)
 
     #В случае неудачи - false
     return false;
+}
+
+/**
+ * Возвращает массив ID сообщений, которые находятся на странице $__page
+ *
+ * @param integer $__page Номер страницы.
+ * 
+ * @return array Массив из ID сообщений.
+ */
+function getMessagesIdsOnPage(int $__page)
+{
+
+    # Вичсляем ID первого сообщения и возвращаем MESSAGE_ON_PAGE - 1 следующих
+    $start = ($__page - 1) * MESSAGES_ON_PAGE;
+    return range($start, $start + MESSAGES_ON_PAGE - 1);
 }
 
 /**
