@@ -115,32 +115,50 @@ function getAuthError()
             </div>';
 }
 
+/**
+ * Возвращает массив номеров страниц пагинации для текущей страницы
+ *
+ * @param integer $__numberOfPages Общее количество страниц.
+ * @param integer $__currentPage   Текущая страница.
+ * 
+ * @return array Массив номеров страниц пагинации для текущей страницы.
+ */
 function paginationListRender(int $__numberOfPages, int $__currentPage)
 {
+
+    # Массив номеров страниц
     $pages = array();
+
+    # Добавление в массив страниц которые находятся на расстоянии PAGES_AROUND от текущей
     for ($i = 1; $i <= $__numberOfPages; $i++) { 
         if(abs($__currentPage - $i) <= PAGES_AROUND) {
             $pages[] = $i;
         }
     }
 
+    # Первый и последний элементы массива
     $first = $pages[0];
     $last  = $pages[count($pages) - 1];
 
+    # Если первый элемент массива - показываем 1 страницу без троеточия
     if ($first == 2) {
         array_unshift($pages, 1);
     }
+    # Если первый элемент массива это 3 или больше - показываем 1 страницу и разделяем троеточием
     elseif($first >= 3) {
         array_unshift($pages, 1, '...');
     }
 
+    # Если последний элемент массива соседний с последней страницей - показываем последнюю страницу без троеточия
     if ($last == $__numberOfPages - 1) {
         array_push($pages, $__numberOfPages);
     }
+    # Если последний элемент на расстоянии больше 2 от последней страницы - показываем последнюю страницу, разделяя троеточием
     elseif ($last <= $__numberOfPages - 2) {
         array_push($pages, '...', $__numberOfPages);
     }
 
+    # Возвращаем массив пагинации
     return $pages;
 }
 
@@ -162,15 +180,14 @@ function getPagination(int $__numberOfPages, int $__currentPage)
                 <form method="post">
                     <ul class="pagination justify-content-center">';
 
-    # Вывод кнопок навигации, кнопку с текущей страницей - выделяем цветом
+    # Вывод кнопок пагинации, кнопку с текущей страницей - выделяем цветом,
+    # Кнопку с троеточием - делаем disabled
     foreach($pagesArr as $pageNumber) {
         $html .= '<li class="page-item" style="margin-right: 5px;">
          <button class="btn btn-'
-         .($pageNumber != $__currentPage ? 'outline-' : '')
-         .'primary btn-sm"
+         .($pageNumber != $__currentPage ? 'outline-' : '').'primary btn-sm"
          type="submit" name="page" value="'.$pageNumber.'"'
-         .($pageNumber === '...' ? ' disabled="disabled" ' : ' ').'>'
-         .$pageNumber.
+         .($pageNumber === '...' ? ' disabled="disabled" ' : ' ').'>'.$pageNumber.
         '</button></li>';
     }
 
@@ -458,23 +475,35 @@ function printGuestBook(int $__numberOfPages, int $__currentPage)
     </html>';
 }
 
+/**
+ * Возвращает HTML-код модальных форм для изменения сообщений
+ *
+ * @param integer $__currentPage Номер страницы.
+ * 
+ * @return string HTML-код.
+ */
 function getModalForms(int $__currentPage)
 {
-    $html = '';
+
+    # Вытаскиваем массив сообщений на текущей странице
     $idsArr = getMessagesIdsOnPage($__currentPage);
+    $html = '';
+
+    # Генерируем HTML-код формы изменения для каждого сообщения
     foreach ($idsArr as $id) {
-        $html .= '<div class="modal fade" id="modal'.$id.'" tabindex="-1" role="dialog" aria-hidden="true">
+        $html .= '<div class="modal fade" id="modal'.$id. '" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Edit message</h5>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
                 </div>
                 <div class="modal-body">
                     <form method="post">
                         <div class="row">
                             <div class="col-9">
-                                <input type="text" name="message" class="form-control" placeholder="Message text">
+                                <input type="text" name="message" value="'.getMessageTextById($id).'" 
+                                class="form-control" placeholder="Message text">
                             </div>
                             <div class="col-3">
                                 <button type="submit" name="editMessageId" value="'.$id.'" class="btn btn-success">Edit</button>
@@ -487,27 +516,64 @@ function getModalForms(int $__currentPage)
         </div>';
     }
 
+    //
     return $html;
 }
 
-function getMessagesIdsOnPage($__page)
+/**
+ * Возвращает массив ID сообщений, которые находятся на странице $__page
+ *
+ * @param integer $__page Номер страницы.
+ * 
+ * @return array Массив из ID сообщений.
+ */
+function getMessagesIdsOnPage(int $__page)
 {
+
+    # Вичсляем ID первого сообщения и возвращаем MESSAGE_ON_PAGE - 1 следующих
     $start = ($__page - 1) * MESSAGES_ON_PAGE;
-    return range($start, $start + MESSAGES_ON_PAGE);
+    return range($start, $start + MESSAGES_ON_PAGE - 1);
 }
 
+/**
+ * Редактирует сообщение гостевой книги
+ *
+ * @param integer $__messageId   ID сообщения.
+ * @param string  $__messageText Текст сообщения.
+ * 
+ * @return void
+ */
 function editMessage(int $__messageId, string $__messageText)
 {
+
+    #Получаем массив сообщений
     $messagesArr = getMessagesArr();
-    $messagesArr[$__messageId]['message_text']    = trim($__messageText);
+
+    #Изменяем поле с текстом сообщения
+    $messagesArr[$__messageId]['message_text'] = trim($__messageText);
+
+    #Добавляем два новых поля: дата изменения, username изменявшего
     $messagesArr[$__messageId]['edited_datetime'] = date('j.m.Y H:i:s');
     $messagesArr[$__messageId]['edited_username'] = $_SESSION['username'];
+
+    #Запись в файл
     putContentInFile(GUESTBOOK_FILE_NAME, serialize($messagesArr));
 }
 
+/**
+ * Возвращает HTML-код текста об изменении сообщения
+ *
+ * @param integer $__messageId IВ сообщения.
+ * 
+ * @return string HTML-код или пустая строка.
+ */
 function getEditLabel(int $__messageId)
 {
+
+    #Получаем массив сообщений
     $messagesArr = getMessagesArr();
+
+    #Если оно было изменено, то выводим доп информаицю об изменении в отдельный абзац
     if (isset($messagesArr[$__messageId]['edited_username'])) {
         return '<p class="card-subtitle text-muted">Edited by '
                 .$messagesArr[$__messageId]['edited_username'].' at '
@@ -515,33 +581,73 @@ function getEditLabel(int $__messageId)
                 </p>';
     }
 
+    #Если сообщение не изменялось - пустая строка
     return '';
 }
 
-function getFileContent($__fileName)
+/**
+ * Получает данные из файла, используя разделяемую блокировку
+ *
+ * @param string $__fileName Имя входного файла.
+ * 
+ * @return string|boolean Данные в файле, false - в случае неудачного открытия
+ */
+function getFileContent(string $__fileName)
 {
+
+    # "Трогаем" файл и открываем для чтения
     touch($__fileName);
     $fp = fopen($__fileName, "r");
 
+    # Ставим разделяемую блокировку
     if (flock($fp, LOCK_SH)) {
+
+        #Забираем данные из файла
         $data = fgets($fp);
+
+        #Закрываем поток и снимаем блокировку
         flock($fp, LOCK_UN);
         return $data;
     }
     
+    #В случае неудачи - false
     return false;
 }
 
-function putContentInFile($__fileName, $__data)
+/**
+ * Записывает данные в файл, используя исключительную блокировку
+ *
+ * @param string $__fileName Имя файла для записи.
+ * @param string $__data     Данные для записи в файл.
+ * 
+ * @return boolean true - успешно, иначе - false.
+ */
+function putContentInFile(string $__fileName, string $__data)
 {
+
+    # "Трогаем" файл и открываем для записи
     touch($__fileName);
     $fp = fopen($__fileName, "w+");
 
+    # Ставим исключительную блокировку
     if (flock($fp, LOCK_EX)) {
+
+        #Записываем данные в файл,закрываем поток и снимаем блокировку
         fputs($fp, $__data);
         flock($fp, LOCK_UN);
+        fclose($fp);
         return true;
     }
 
+    #В случае неудачи - false
     return false;
+}
+
+/**
+ * Возвращает 
+ */
+function getMessageTextById(int $__id)
+{
+    $messagesArr = getMessagesArr();
+    return $messagesArr[$__id]['message_text'];
 }
