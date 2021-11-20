@@ -1,7 +1,7 @@
 <?php
 
 # Подключаем файл с функциями
-include "guestbook.php";
+require "guestbook.php";
 
 #Начинаем сессию и устанавливаем временную зону
 session_start();
@@ -12,12 +12,6 @@ define("MESSAGES_ON_PAGE", 5);
 define("PAGES_AROUND", 2);
 define("USERS_FILE_NAME", 'users.txt');
 define("GUESTBOOK_FILE_NAME", 'guestbook.txt');
-// $usersArr = [
-//     'admin' => ['password' => md5('1'), 'access_level' => 1],
-//     'root' => ['password' => md5('toor'), 'access_level' => 1],
-//     'misha' => ['password' => md5('smd'), 'access_level' => 2],
-//     'user' => ['password' => md5('user'), 'access_level' => 2],
-// ];   => В README
 
 #Инициализация флага ошибки авторизации
 $authErrorFlag = false;
@@ -26,11 +20,8 @@ $authErrorFlag = false;
 $usersArr = unserialize(getFileContent(USERS_FILE_NAME));
 
 #Блок обработки параметров
-foreach (array('username', 'password', 'action', 'message',
-        'deleteMessageId', 'editMessageId', 'page', 'guestname') as $variableName) {
-	$$variableName = isset($_POST[$variableName])
-	? htmlspecialchars($_POST[$variableName])
-	: '';
+foreach (array('username', 'password', 'action', 'message', 'deleteMessageId', 'editMessageId', 'page', 'guestname') as $variableName) {
+	$$variableName = isset($_POST[$variableName]) ? htmlspecialchars($_POST[$variableName]) : '';
 }
 
 #Проверка успешной авторизации и запись в сессию данных о юзере

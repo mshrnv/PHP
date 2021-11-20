@@ -7,7 +7,7 @@
  */
 function reload()
 {
-    header("Location: http://" . $_SERVER['SERVER_NAME'] . $_SERVER["SCRIPT_NAME"]);
+    header("Location: http://".$_SERVER['SERVER_NAME'].$_SERVER["SCRIPT_NAME"]);
 }
 
 /**
@@ -44,7 +44,7 @@ function sendMessage(string $__text, string $__username)
 {
 
     # Получаем массив сообщений
-    $messagesArr      = getMessagesArr();
+    $messagesArr = getMessagesArr();
 
     #Записываем новое сообщение
     $messageArr = array(
@@ -95,7 +95,7 @@ function deleteMessage(int $__messageId)
 {
 
     #Получаем массив сообщений
-    $messagesArr      = getMessagesArr();
+    $messagesArr = getMessagesArr();
 
     #Удаляем заданное сообщение
     unset($messagesArr[$__messageId]);
@@ -117,23 +117,24 @@ function paginationListRender(int $__numberOfPages, int $__currentPage)
 {
 
     # Массив номеров страниц
-    $pages = array();
+    $pagesArr = array();
 
     # Добавление в массив страниц которые находятся на расстоянии PAGES_AROUND от текущей
-    for ($i = 1; $i <= $__numberOfPages; $i++) {
-        if (abs($__currentPage - $i) <= PAGES_AROUND) {
-            $pages[] = $i;
+    for ($pageNumber = 1; $pageNumber <= $__numberOfPages; $pageNumber++) {
+        if (abs($__currentPage - $pageNumber) <= PAGES_AROUND) {
+            $pagesArr[] = $pageNumber;
         }
     }
 
     # Первый и последний элементы массива
-    $first = $pages[0];
-    $last  = $pages[count($pages) - 1];
+    $first = $pagesArr[0];
+    $last  = $pagesArr[count($pagesArr) - 1];
 
     # Если первый элемент массива - показываем 1 страницу без троеточия
     if ($first == 2) {
         array_unshift($pages, 1);
     }
+    
     # Если первый элемент массива это 3 или больше - показываем 1 страницу и разделяем троеточием
     elseif ($first >= 3) {
         array_unshift($pages, 1, '...');
@@ -143,6 +144,7 @@ function paginationListRender(int $__numberOfPages, int $__currentPage)
     if ($last == $__numberOfPages - 1) {
         array_push($pages, $__numberOfPages);
     }
+    
     # Если последний элемент на расстоянии больше 2 от последней страницы - показываем последнюю страницу, разделяя троеточием
     elseif ($last <= $__numberOfPages - 2) {
         array_push($pages, '...', $__numberOfPages);
@@ -174,11 +176,9 @@ function getPagination(int $__currentPage, int $__numberOfPages)
     # Кнопку с троеточием - делаем disabled
     foreach ($pagesArr as $pageNumber) {
         $html .= '<li class="page-item" style="margin-right: 5px;">
-         <button class="btn btn-'
-            . ($pageNumber != $__currentPage ? 'outline-' : '') . 'primary btn-sm"
-         type="submit" name="page" value="' . $pageNumber . '"'
-            . ($pageNumber === '...' ? ' disabled="disabled" ' : ' ') . '>' . $pageNumber .
-            '</button></li>';
+         <button class="btn btn-'.($pageNumber != $__currentPage ? 'outline-' : '').'primary btn-sm"
+         type="submit" name="page" value="'.$pageNumber.'"'
+        .($pageNumber === '...' ? ' disabled="disabled" ' : ' ').'>'.$pageNumber.'</button></li>';
     }
 
     #Конец блока навигации
@@ -197,8 +197,8 @@ function getMessagesArr()
 {
 
     #Чтение файла и его ансериалицация в массив
-    $data             = getFileContent(GUESTBOOK_FILE_NAME);
-    $messagesArr      = $data ? unserialize($data) : array();
+    $data        = getFileContent(GUESTBOOK_FILE_NAME);
+    $messagesArr = $data ? unserialize($data) : array();
 
     //
     return $messagesArr;
@@ -247,12 +247,11 @@ function getMessages(int $__currentPage, int $__numberOfPages)
         #И заносим в HTML
         $html .= '<div class="card" style="margin-bottom: 15px;">
                     <div class="card-body" style="position: relative;">
-                        <h6 class="card-title"><b>' . $messageArr['username'] . "</b> " . getIp($messageArr['user_ip']) .
-            ' | ' . $messageArr['datetime'] . '</h6>
-                        <p class="card-text" style="margin-bottom:5px; font-size: 18px;">' . $messageArr['message_text'] . '</p>'
-            . getEditLabel($messageId) . ' 
-                        ' . getEditAndCloseButtons($messageArr['username'], $messageId) . '</div>
-                        </div>';
+                        <h6 class="card-title"><b>'.$messageArr['username']."</b> ".getIp($messageArr['user_ip']).
+        ' | '.$messageArr['datetime'].'</h6>
+         <p class="card-text" style="margin-bottom:5px; font-size: 18px;">'.$messageArr['message_text'].'</p>'
+        .getEditLabel($messageId).' 
+         '.getEditAndCloseButtons($messageArr['username'], $messageId).'</div></div>';
     }
 
     #Возвращаем HTML-код сообщений на странице
@@ -268,7 +267,7 @@ function getMessages(int $__currentPage, int $__numberOfPages)
  */
 function getIp(string $__ip)
 {
-    return $_SESSION['access_level'] !== 1 ? '' : '| ' . $__ip;
+    return $_SESSION['access_level'] !== 1 ? '' : '| '.$__ip;
 }
 
 /**
@@ -292,12 +291,12 @@ function getEditAndCloseButtons(string $__username, int $__id)
         #Если да, то возвращаем кнопку удаления
         return '<form method="post" style="position: absolute; top: 5px; right: 25px;">
                     <button type="button" style="border:none; background:none;" 
-                    data-bs-toggle="modal" data-bs-target="#modal' . $__id . '">
+                    data-bs-toggle="modal" data-bs-target="#modal'.$__id.'">
                         <img src="img/edit.png" style="width:15px;">
                     </button>
                 </form>
                 <form method="post" style="position: absolute; top: 5px; right: 5px;">
-                    <button name="deleteMessageId" value=' . $__id . ' type="submit" style="border:none; background:none;">
+                    <button name="deleteMessageId" value='.$__id.' type="submit" style="border:none; background:none;">
                         <img src="img/close.png" style="width:15px;">
                     </button>
                 </form>';
@@ -325,9 +324,8 @@ function getEditLabel(int $__messageId)
     #Если оно было изменено, то выводим доп информаицю об изменении в отдельный абзац
     if (isset($messagesArr[$__messageId]['edited_username'])) {
         return '<p class="card-subtitle text-muted">Edited by '
-            . $messagesArr[$__messageId]['edited_username'] . ' at '
-            . $messagesArr[$__messageId]['edited_datetime'] . '
-                </p>';
+        .$messagesArr[$__messageId]['edited_username'].' at '
+        .$messagesArr[$__messageId]['edited_datetime'].'</p>';
     }
 
     #Если сообщение не изменялось - пустая строка
@@ -363,7 +361,7 @@ function printSignInForm(bool $__errorFlag)
                 <button name="action" class="btn btn-lg btn-outline-primary btn-block" type="submit" value="SignIn">Sign in</button>
                 <button name="action" class="btn btn-lg btn-outline-primary btn-block" type="submit" value="SignInAsGuest">Sign in as guest</button>
             </form>
-            ' . ($__errorFlag ? getAuthError() : '') . '
+            '.($__errorFlag ? getAuthError() : '').'
         </div></body></html>';
 }
 
@@ -397,7 +395,7 @@ function printGuestBook(int $__numberOfPages, int $__currentPage)
             </a>
             <form method="post" class="form-inline my-2 my-lg-0" style="margin-right: 15px;">
                 <span class="navbar-text badge badge-success" style="margin-right: 10px; font-size: 14px;">
-                Hi, ' . $_SESSION['username'] . '     <img src="img/hand.png" width="20">  
+                Hi, '.$_SESSION['username'].'<img src="img/hand.png" width="20">  
                 </span>
                 <button name="action" class="btn btn-outline-danger" type="submit" value="LogOut">Log out</button>
             </form>
@@ -407,11 +405,11 @@ function printGuestBook(int $__numberOfPages, int $__currentPage)
             <div class="row">
             <div class="col-md-9">
 
-                ' . getPagination($__currentPage, $__numberOfPages) . '                    
+                '.getPagination($__currentPage, $__numberOfPages).'                    
     
                 <div class="container">
     
-                    ' . getMessages($__currentPage, $__numberOfPages) . '
+                    '.getMessages($__currentPage, $__numberOfPages).'
     
                 </div>
     
@@ -419,16 +417,16 @@ function printGuestBook(int $__numberOfPages, int $__currentPage)
     
             <div class="col-md-3 text-center" style="padding: 60px 15px;">
                 <form method="post">
-                    ' . ($_SESSION["access_level"] == 3
+                    '.($_SESSION["access_level"] == 3
         ? '<input name="guestname" type="text" class="form-control" placeholder="Username" required="" autofocus="" style="margin-bottom: 15px;">'
-        : '') . '
+        : '').'
                     <textarea name="message" class="form-control" placeholder="Message" rows="3" required="" style="margin-bottom: 15px;"></textarea>
                     <button name="action" class="btn btn-outline-success btn-block" type="submit" value="SendMessage">Send Message</button>
                 </form>
             </div>
             </div>
         </div>'
-        . getModalForms($__currentPage, $__numberOfPages) . '
+    .getModalForms($__currentPage, $__numberOfPages).'
     </body>
     </html>';
 }
@@ -441,7 +439,7 @@ function printGuestBook(int $__numberOfPages, int $__currentPage)
  * 
  * @return string HTML-код.
  */
-function getModalForms(int $__currentPage, $__numberOfPages)
+function getModalForms(int $__currentPage, int $__numberOfPages)
 {
 
     # Вытаскиваем массив сообщений на текущей странице
@@ -450,7 +448,7 @@ function getModalForms(int $__currentPage, $__numberOfPages)
 
     # Генерируем HTML-код формы изменения для каждого сообщения
     foreach ($idsArr as $id) {
-        $html .= '<div class="modal fade" id="modal' . $id . '" tabindex="-1" role="dialog" aria-hidden="true">
+        $html .= '<div class="modal fade" id="modal'.$id.'" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                 <div class="modal-header">
@@ -461,7 +459,7 @@ function getModalForms(int $__currentPage, $__numberOfPages)
                     <form method="post">
                         <div class="row">
                             <div class="col-9">
-                                <input type="text" name="message" value="' . getMessageTextById($id) . '" 
+                                <input type="text" name="message" value="'.getMessageTextById($id).'" 
                                 class="form-control" placeholder="Message text">
                             </div>
                             <div class="col-3">
