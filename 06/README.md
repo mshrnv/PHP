@@ -1,14 +1,14 @@
-# Комментарии к 05:Guestbook
+# Комментарии к 06:Guestbook2
 
 ## Информация о пользователях
 
 admin => 1 (access_level = 1)
 
-root => toor (access_level = 1)
+root  => toor (access_level = 1)
 
 misha => smd (access_level = 2)
 
-user => user (access_level = 2)
+user  => user (access_level = 2)
 
 ## Логика ACCESS_LEVEL
 
@@ -18,7 +18,7 @@ user => user (access_level = 2)
 
 2 - authorized_user (авторизованный пользователь)
 
-Не видит IP-адресса, может удалять сообщения, отправленные им
+Не видит IP-адресса, может удалять/изменять сообщения, отправленные им
 
 3 - guest (гость)
 
@@ -35,7 +35,7 @@ $messagesArr имеет следующую структуру и хранит в
         'datetime'     => Дата и время отправки сообщения,
         'message_text' => Текст отправленного сообщения,
         'user_ip'      => IP-адресс клиента
-        *Optional:*
+        Optional:
         'edited_datetime' => Дата и время изменения сообшения,
         'edited_username' => Имя пользователя, изменившего сообщение
     ]
