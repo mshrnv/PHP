@@ -59,20 +59,25 @@ class Battle
 
         while (!empty($this->__allies) && !empty($this->__enemies)) {
             $summaryDamage = 0;
-            foreach ($$attack as $unit) {
-                $summaryDamage = $summaryDamage + $unit->getDamage();
+            foreach ($this -> $attack as $unit) {
+                $summaryDamage += $unit->getDamage();
             }
 
-            $damagePerUnit = intval($summaryDamage / count($this->$$defence));
+            $damagePerUnit = intval($summaryDamage / count($this->$defence));
             $died = array();
-            foreach ($$defence as $unit) {
+            foreach ($this -> $defence as $unit) {
                 $unit->hit($damagePerUnit);
-                if ($unit->getHealth < 0) {
+                if ($unit->getHealth() < 0) {
                     $died[] = $unit;
                 }
             }
 
-            $this->$$defence = array_diff($this->$$defence, $died);
+            foreach ($died as $unit) {
+                unset($this->$defence[array_search($unit, $this->$defence)]);
+            }
+            print_r('Attack: '.$attack."\n");
+            var_dump($this -> $attack);
+            var_dump($this -> $defence);
 
             $temp    = $attack;
             $attack  = $defence;
@@ -88,8 +93,8 @@ class Unit
 
     function __construct($health, $damage)
     {
-        $this->__health = $health;
-        $this->damage = $damage;
+        $this -> __health = $health;
+        $this -> __damage = $damage;
     }
 
     function getHealth()
@@ -99,7 +104,7 @@ class Unit
 
     function getDamage()
     {
-        return $this->damage;
+        return $this->__damage;
     }
 
     function hit($damage)
@@ -108,3 +113,17 @@ class Unit
     }
 }
 
+$abramov = new Unit(100, 45);
+$takhkaev = new Unit(100, 40);
+$shibaev = new Unit(25, 5);
+
+$aleshin = new Unit(100, 20);
+$milomaev = new Unit(120, 70);
+$shoronov = new Unit(100, 15);
+
+$a673 = [$abramov, $takhkaev, $shibaev];
+$a675 = [$aleshin, $milomaev, $shoronov];
+
+$battle = new Battle($a673, $a675);
+$battle -> fight();
+var_dump($battle -> getAlliesCount());
