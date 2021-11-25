@@ -132,26 +132,26 @@ function paginationListRender(int $__numberOfPages, int $__currentPage)
 
     # Если первый элемент массива - показываем 1 страницу без троеточия
     if ($first == 2) {
-        array_unshift($pages, 1);
+        array_unshift($pagesArr, 1);
     }
     
     # Если первый элемент массива это 3 или больше - показываем 1 страницу и разделяем троеточием
     elseif ($first >= 3) {
-        array_unshift($pages, 1, '...');
+        array_unshift($pagesArr, 1, '...');
     }
 
     # Если последний элемент массива соседний с последней страницей - показываем последнюю страницу без троеточия
     if ($last == $__numberOfPages - 1) {
-        array_push($pages, $__numberOfPages);
+        array_push($pagesArr, $__numberOfPages);
     }
     
     # Если последний элемент на расстоянии больше 2 от последней страницы - показываем последнюю страницу, разделяя троеточием
     elseif ($last <= $__numberOfPages - 2) {
-        array_push($pages, '...', $__numberOfPages);
+        array_push($pagesArr, '...', $__numberOfPages);
     }
 
     # Возвращаем массив пагинации
-    return $pages;
+    return $pagesArr;
 }
 
 /**
