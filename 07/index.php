@@ -49,12 +49,12 @@ function myUrlPcreParse(string $__url)
         (?(?=^[\w]*(?=:\/\/))             #Если есть протокол
         (?:(?<protocol>^[\w]*)(?::\/\/)   #Протокол
         (?<domain>                        #Домен
-        (?<_2_level_domain>\w*\.)*       #Домен вторго уровня
+        (?<_2_level_domain>\w*\.)*        #Домен вторго уровня
         (?<zone>\w+)?)                    #Зона
         (?:(?(?=:):                       #Если еть порт
         (?:(?<port>\w*?)(?:\/))|\/))))    #Порт
         (?<raw_folder>[\w\/\.:]*\/)*      #Относительный путь к файлу
-        (?<script_name>[\w\.]+\.+\w+)*\?             #Расширение скрипта
+        (?<script_name>[\w\.]+\.+\w+)*\?  #Расширение скрипта
         ?(?<parameters>\S+)*              #Параметры    
         /xuis';
     
@@ -104,7 +104,7 @@ function pathParse(string $__rawPath)
 {
     $__rawPath = explode('/', $__rawPath);
 
-    //Обработка содержимого между '/' в введеном пути
+    # Обработка содержимого между '/' в введеном пути
     foreach ($__rawPath as $folder) {
         if ($folder == "" || $folder == ".") {
             continue;
@@ -117,6 +117,6 @@ function pathParse(string $__rawPath)
         }
     }
 
-    //Возвращаемый массив
+    # Возвращаемый массив
     return isset($pathArr) ? implode('/', $pathArr) : '';
 }
