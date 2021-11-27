@@ -23,13 +23,13 @@
 
 class Battle
 {
-    private $__allies  = array();
-    private $__enemies = array();
+    private $__allies;
+    private $__enemies;
 
-    function __construct($a = array(), $e = array())
+    function __construct($allies, $enemies)
     {
-        $this->__allies  = $a;
-        $this->__enemies = $e;
+        $this->__allies  = $allies;
+        $this->__enemies = $enemies;
     }
 
     function joinToAllies($unit)

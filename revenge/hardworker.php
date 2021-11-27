@@ -89,11 +89,7 @@ class Plumber extends HardWorker
 
     function __construct($age, $salary, $jobs)
     {
-        // $this -> __plumber -> set_age($age);
-        // $this -> __plumber -> set_salary($salary);
-        // $this -> __plumber -> set_jobs($jobs);
-
-        $this -> __plumber = new HardWorker($age, $salary, $jobs);
+        $this->__plumber = new HardWorker($age, $salary, $jobs);
     }
 
     function set_salary($salary)
@@ -113,17 +109,17 @@ class Plumber extends HardWorker
 
     function get_jobs()
     {
-        parent::get_jobs();
+        return $this->__plumber->get_jobs();
     }
 
     function get_salary()
     {
-        parent::get_salary();
+        return $this->__plumber->get_salary();
     }
 
     function get_age()
     {
-        parent::get_age();
+        return $this->__plumber->get_age();
     }
 
     function funny()
@@ -133,9 +129,9 @@ class Plumber extends HardWorker
 
     function worked()
     {
-        $this->__jobs   += 5;
-        $this->__salary += 1000;
-        $this->__age    += 0.5;
+        $this->__plumber->set_jobs($this->__plumber->get_jobs() + 5);
+        $this->__plumber->set_salary($this->__plumber->get_salary() + 1000);
+        $this->__plumber->set_age($this->__plumber->get_age() + 0.5);
     }
 
     function ate()
@@ -156,7 +152,7 @@ class Programmer extends HardWorker
 
     function __construct($age, $salary, $jobs)
     {
-        parent::__construct($age, $salary, $jobs);
+        $this->__programmer = new HardWorker($age, $salary, $jobs);
     }
 
     function set_salary($salary)
@@ -186,7 +182,7 @@ class Programmer extends HardWorker
 
     function get_age()
     {
-        parent::get_age();
+        return $this->__porgrammer->get_age();
     }
 
     function funny()
