@@ -34,51 +34,90 @@ class Complex
     private $__real;
     private $__imaginary;
 
-    function __construct($__real, $__imaginary)
-    {
-        $this -> __real      = $__real;
-        $this -> __imaginary = $__imaginary;
+    function __construct(
+        $real,
+        $imaginary
+    ) {
+        $this->__real      = $real;
+        $this->__imaginary = $imaginary;
     }
 
-    function set_real($__real)
+    function set_real($real)
     {
-        $this -> __real = $__real;
+        $this->__real = $real;
     }
 
-    function set_imaginary($__imaginary)
+    function set_imaginary($imaginary)
     {
-        $this -> __imaginary = $__imaginary;
+        $this->__imaginary = $imaginary;
     }
 
     function get_real()
     {
-        return $this -> __real;
+        return $this->__real;
     }
 
     function get_imaginary()
     {
-        return $this -> __imaginary;
+        return $this->__imaginary;
     }
 
     function module()
     {
-        return sqrt(pow($this -> __real, 2) + pow($this -> __imaginary, 2));
+        return sqrt(pow($this->__real, 2) + pow($this->__imaginary, 2));
     }
 
     function get_arg()
     {
-        return atan($this -> __imaginary / $this -> __real);
+        return cosh(($this->__real) / $this -> module());
     }
 
     function set_coordinates($module, $arg)
     {
-        $this -> __real      = $module * cos($arg);
-        $this -> __imaginary = $module * sin($arg);
+        $this->__real      = $module * cos($arg);
+        $this->__imaginary = $module * sin($arg);
     }
 
     function pow_complex($degree)
     {
-        $mod = $this -> module();
-        
+        $mod = $this->module();
+    }
+
+    function add($parameters_other)
+    {
+        $this->__real      += $parameters_other[0];
+        $this->__imaginary += $parameters_other[1];
+    }
+
+    function composition($parameters_other)
+    {
+    }
+
+    function reverse_element()
+    {
+    }
+
+    function division($parameters_other)
+    {
+    }
+}
+
+class Real extends Complex
+{
+    private $__real;
+
+    function __construct($real)
+    {
+        $this->__real = $real;
+    }
+
+    function add($other)
+    {
+        $this->__real      += $other;
+    }
+
+    function composition($other)
+    {
+        $this->__real      *= $other;
     }
 }
