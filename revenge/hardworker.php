@@ -93,7 +93,7 @@ class Plumber extends HardWorker
         // $this -> __plumber -> set_salary($salary);
         // $this -> __plumber -> set_jobs($jobs);
 
-        $this -> __plumber = new HardWorker($age, $salary, $jobs)
+        $this -> __plumber = new HardWorker($age, $salary, $jobs);
     }
 
     function set_salary($salary)
