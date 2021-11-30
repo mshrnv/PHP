@@ -1,0 +1,12 @@
+table{
+    text-align: center;
+}
+
+td{
+    font-weight: 700;
+    width: 14%;
+}
+
+tr:first-child td:nth-last-child(-n+2){
+    color: rgba(255, 0, 0, 0.829);
+}
