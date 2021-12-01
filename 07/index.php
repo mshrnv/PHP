@@ -49,12 +49,12 @@ function myUrlPcreParse(string $__url)
         (?(?=^[\w]*(?=:\/\/))             #Если есть протокол
         (?:(?<protocol>^[\w]*)(?::\/\/)   #Протокол
         (?<domain>                        #Домен
-        (?<_2_level_domain>\w*\.)*        #Домен вторго уровня
+        (?<_2_level_domain>\w*\.)*       #Домен вторго уровня
         (?<zone>\w+)?)                    #Зона
         (?:(?(?=:):                       #Если еть порт
         (?:(?<port>\w*?)(?:\/))|\/))))    #Порт
         (?<raw_folder>[\w\/\.:]*\/)*      #Относительный путь к файлу
-        (?<script_name>[\w\.]+\.+\w+)*\?  #Расширение скрипта
+        (?<script_name>[\w\.]+\.+\w+)*\?             #Расширение скрипта
         ?(?<parameters>\S+)*              #Параметры    
         /xuis';
     
@@ -82,12 +82,15 @@ function myUrlPcreParse(string $__url)
     $resultArr['script_path']      = $resultArr['folder'].'/'.$resultArr['script_name'];
     $resultArr['is_php']           = preg_match('/\b\w+\.php\b/uis', $resultArr['script_name']);
 
-    # Разбиваем параметры на пары и записываем в итоговый массив
-    $parametersArr           = preg_split('/&/uis', $resultArr['parameters']);
-    $resultArr['parameters'] = array();
-    foreach ($parametersArr as $pair) {
-        list($key, $resultArr['parameters']["$key"]) = preg_split('/=/uis', $pair, 2);
-    }
+    # Ищем пары параметров: ключи - в один карман, значения - в другой
+    preg_match_all(
+        '/(?<keys>[^=&]+)=(?<values>[^&]+)/ui',
+        $resultArr['parameters'],
+        $matches
+    );
+
+    # Формируем массив параметров "комбинируя" два массива
+    $resultArr['parameters'] = array_combine($matches['keys'], $matches['values']);
 
     //
     return $resultArr;
@@ -102,14 +105,25 @@ function myUrlPcreParse(string $__url)
  */
 function pathParse(string $__rawPath)
 {
-    $__rawPath = explode('/', $__rawPath);
 
-    # Обработка содержимого между '/' в введеном пути
-    foreach ($__rawPath as $folder) {
-        if ($folder == "" || $folder == ".") {
-            continue;
-        }
-        else if ($folder == "..") {
+    # Если введенный путь пустой - действительный тоже
+    if (!$__rawPath) {
+        return '';
+    }
+
+    # Поиск всех составляющих пути
+    preg_match_all(
+        '/[^\/]+/ui',
+        $__rawPath,
+        $matches
+    );
+    
+    # Убираем все одинарный точки
+    $rawPathArr = array_diff($matches[0], array('.'));
+
+    # Формируем действительный путь
+    foreach ($rawPathArr as $folder) {
+        if ($folder == '..') {
             array_pop($pathArr);
         }
         else {
@@ -117,6 +131,6 @@ function pathParse(string $__rawPath)
         }
     }
 
-    # Возвращаемый массив
-    return isset($pathArr) ? implode('/', $pathArr) : '';
+    # Действительный путь к скрипту
+    return implode('/', $pathArr);
 }
