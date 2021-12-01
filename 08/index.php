@@ -12,6 +12,16 @@
 
 function getCalendar($__month, $__year)
 {
+    $timestamp = mktime(0, 0, 0, $__month, 1, $__year);
+    $daysCount = date('t', $timestamp);
+
+    $dates = range(1, $daysCount);
+
+    $firstDayOfWeek = date('w', $timestamp);
+    foreach (range(1, $firstDayOfWeek) as $value) {
+        
+    }
+
     return '<table class="table table-bordered">
             <tr>
                 <td>Monday</td>
