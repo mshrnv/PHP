@@ -1,5 +1,7 @@
 <?php
 
+define('HOLIDAYS_ARR', array('01.01', '23.02', '08.03', '01.05', '09.05', '01.09', '20.12'));
+
 // Обработка GET
 if (isset($_GET['year']) && isset($_GET['month'])) {
     print getCalendar($_GET['month'], $_GET['year']);
@@ -36,10 +38,13 @@ function getCalendar($__month, $__year)
     }
 
     $endEmptyDaysCount = 7 - (count($dates) % 7);
+    if ($endEmptyDaysCount == 7) {
+        $endEmptyDaysCount = 0;
+    }
     for ($day = 0; $day < $endEmptyDaysCount; $day++) {
         array_push($dates, '');
     }
-
+    
     foreach(range(1, count($dates) / 7) as $week) {
         $html .= '<tr>';
         foreach (range(1,7) as $day) {
