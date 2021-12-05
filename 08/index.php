@@ -1,5 +1,6 @@
 <?php
 
+date_default_timezone_set('Europe/Moscow');
 define('HOLIDAYS_ARR', array('01.01', '23.02', '08.03', '01.05', '09.05', '01.09', '20.12'));
 
 // Обработка GET
@@ -17,7 +18,6 @@ function getCalendar($__month, $__year)
 {
     $timestamp = mktime(0, 0, 0, $__month, 1, $__year);
     $daysCount = date('t', $timestamp);
-
     $dates = range(1, $daysCount);
 
     $html = '<table class="table table-bordered">
@@ -30,9 +30,8 @@ function getCalendar($__month, $__year)
                 <td>Saturday</td>
                 <td>Sunday</td>
             </tr>';
-    
-    $firstDayOfWeek = date('w', $timestamp);
-    $beginEmptyDaysCount = $firstDayOfWeek == 0 ? 6 : $firstDayOfWeek - 1;
+
+    $beginEmptyDaysCount = date('N', $timestamp) - 1;
     for($day = 0; $day < $beginEmptyDaysCount; $day++) {
         array_unshift($dates, '');
     }
@@ -41,8 +40,24 @@ function getCalendar($__month, $__year)
     if ($endEmptyDaysCount == 7) {
         $endEmptyDaysCount = 0;
     }
+
     for ($day = 0; $day < $endEmptyDaysCount; $day++) {
         array_push($dates, '');
+    }
+
+    # Выделение текущей даты
+    if ($__month == date('m', strtotime('now'))) {
+        $currentDate = date('d', strtotime('now'));
+        $currentDateIndex = array_search($currentDate, $dates);
+        $dates[$currentDateIndex] = "<div class='now'>{$dates[$currentDateIndex]}</div>";
+    }
+
+    $holidaysInMonth = array();
+    foreach (HOLIDAYS_ARR as $index => $date) {
+        if (preg_match('/(\d{2})\.'.$__month.'/ui', $date, $matches)) {
+            $index = array_search($matches[1], $dates);
+            $dates[$index] = "<div class='holiday'>{$dates[$index]}</div>";
+        }
     }
     
     foreach(range(1, count($dates) / 7) as $week) {

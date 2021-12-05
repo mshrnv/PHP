@@ -1,12 +1,30 @@
+*{
+    margin: 0px;
+    padding: 0px;
+}
+
 table{
     text-align: center;
 }
 
 td{
-    font-weight: 700;
+    font-weight: 600;
     width: 14%;
+    padding: 0px;
 }
 
 tr:first-child td:nth-last-child(-n+2){
     color: rgba(255, 0, 0, 0.829);
+}
+
+tr:first-child td{
+    font-weight: 800;
+}
+
+div.now{
+    background-color: lightgreen;
+}
+
+div.holiday{
+    border: 3px solid lightcoral;
 }
