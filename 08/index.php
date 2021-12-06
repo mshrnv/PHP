@@ -1,7 +1,10 @@
 <?php
 
 date_default_timezone_set('Europe/Moscow');
+
 define('HOLIDAYS_ARR', array('01.01', '23.02', '08.03', '01.05', '09.05', '01.09', '20.12'));
+define('MIN_YEAR', 2015);
+define('MAX_YEAR', 2025);
 
 // Обработка GET
 if (isset($_GET['year']) && isset($_GET['month'])) {
@@ -16,6 +19,7 @@ else {
 
 function getCalendar($__month, $__year)
 {
+    var_dump($__month, $__year);
     $timestamp = mktime(0, 0, 0, $__month, 1, $__year);
     $daysCount = date('t', $timestamp);
     $dates = range(1, $daysCount);
@@ -75,7 +79,7 @@ function getCalendar($__month, $__year)
 
 function getHeader()
 {
-    return '<!DOCTYPE html>
+    $html = '<!DOCTYPE html>
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
@@ -100,41 +104,37 @@ function getHeader()
                     <div class="row" style="margin-top: 15px;">
                         <div class="col-md-3"></div>
                         <div class="col-md-3">
-                            <select class="form-select" id="year" onchange="update()">
-                                <option value="2016">2016</option>
-                                <option value="2017">2017</option>
-                                <option value="2018">2018</option>
-                                <option value="2019">2019</option>
-                                <option value="2020">2020</option>
-                                <option value="2021" selected>2021</option>
-                                <option value="2022">2022</option>
-                                <option value="2023">2023</option>
-                                <option value="2024">2024</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <select class="form-select" id="month" onchange="update();">
-                                <option value="01">January</option>
-                                <option value="02">February</option>
-                                <option value="03">March</option>
-                                <option value="04">April</option>
-                                <option value="05">May</option>
-                                <option value="06">June</option>
-                                <option value="07">Jule</option>
-                                <option value="08">August</option>
-                                <option value="09">September</option>
-                                <option value="10">Octomber</option>
-                                <option value="11">November</option>
-                                <option value="12" selected>December</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3"></div>
-                    </div>
-                    <div class="row" style="margin-top: 25px;">
-                        <div class="col-md-2">
+                            <select class="form-select" id="year" onchange="update()">';
+    foreach (range(MIN_YEAR, MAX_YEAR) as $year) {
+        $html .= "<option value='{$year}'>$year</option>";
+    }
+    $html .= '</select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="month" onchange="update();">
+                    <option value="01">January</option>
+                    <option value="02">February</option>
+                    <option value="03">March</option>
+                    <option value="04">April</option>
+                    <option value="05">May</option>
+                    <option value="06">June</option>
+                    <option value="07">Jule</option>
+                    <option value="08">August</option>
+                    <option value="09">September</option>
+                    <option value="10">Octomber</option>
+                    <option value="11">November</option>
+                    <option value="12" selected>December</option>
+                </select>
+            </div>
+            <div class="col-md-3"></div>
+        </div>
+        <div class="row" style="margin-top: 25px;">
+            <div class="col-md-2">
 
-                        </div>
-                        <div class="col-md-8" id="calendar">';
+            </div>
+            <div class="col-md-8" id="calendar">';
+    
+    return $html;
 }
 
 function getFooter()
@@ -143,6 +143,7 @@ function getFooter()
             <div class="col-md-2"></div>
         </div>
     </div>
+    <script>$("option[value=\'2021\']").attr("selected", true)</script>
 </body>
 </html>';
 }
