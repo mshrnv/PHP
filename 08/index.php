@@ -1,29 +1,50 @@
 <?php
 
+# Устанавливаем временную зону
 date_default_timezone_set('Europe/Moscow');
 
+# Определение констант
 define('HOLIDAYS_ARR', array('01.01', '23.02', '08.03', '01.05', '09.05', '01.09', '20.12'));
 define('MIN_YEAR', 2015);
 define('MAX_YEAR', 2025);
+define('DAYS_IN_WEEK', 7);
 
-// Обработка GET
-if (isset($_GET['year']) && isset($_GET['month'])) {
-    print getCalendar($_GET['month'], $_GET['year']);
+# Обработка параметров GET запроса
+$month = isset($_GET['month']) ? htmlspecialchars($_GET['month']) : date('n');
+$year  = isset($_GET['year']) ? htmlspecialchars($_GET['year']) : date('Y');
+
+# Если month и year пришли в GET запросе - возвращаем только таблицу календаря
+if (isset($_GET['month']) && isset($_GET['year'])) {
+    print getCalendar($month, $year);
 }
+
+# Если их нет в GET запросе - выводим всю страницу
 else {
     $html  = getHeader();
-    $html .= getCalendar(date('n'), date('Y'));
+    $html .= getCalendar($month, $year);
     $html .= getFooter();
     print $html;
 }
 
-function getCalendar($__month, $__year)
+/**
+ * Возвращает HTML код таблицы календаря
+ *
+ * @param string  $__month Месяц календаря.
+ * @param integer $__year  Год календаря.
+ * 
+ * @return string HTML код календаря.
+ */
+function getCalendar(string $__month, int $__year)
 {
-    var_dump($__month, $__year);
-    $timestamp = mktime(0, 0, 0, $__month, 1, $__year);
-    $daysCount = date('t', $timestamp);
-    $dates = range(1, $daysCount);
 
+    # Определяем выбранный для показа месяц в формате UNIX time
+    $timestamp = mktime(0, 0, 0, $__month, 1, $__year);
+
+    # Определяем количество дней в месяце и заполняем массив дней
+    $daysCount = date('t', $timestamp);
+    $dates     = range(1, $daysCount);
+
+    # Начало таблицы
     $html = '<table class="table table-bordered">
             <tr>
                 <td>Monday</td>
@@ -35,48 +56,63 @@ function getCalendar($__month, $__year)
                 <td>Sunday</td>
             </tr>';
 
+    # Добавляем в начало массива (Номер_дня_недели_первого_числа - 1) пустых элементов
     $beginEmptyDaysCount = date('N', $timestamp) - 1;
-    for($day = 0; $day < $beginEmptyDaysCount; $day++) {
+    for ($day = 0; $day < $beginEmptyDaysCount; $day++) {
         array_unshift($dates, '');
     }
 
-    $endEmptyDaysCount = 7 - (count($dates) % 7);
+    # Определяем количество пустых элементов, чтобы последняя строка была длины DAYS_IN_WEEK
+    $endEmptyDaysCount = DAYS_IN_WEEK - (count($dates) % DAYS_IN_WEEK);
     if ($endEmptyDaysCount == 7) {
         $endEmptyDaysCount = 0;
     }
 
+    # Добавляем в конец массива пустые элементы
     for ($day = 0; $day < $endEmptyDaysCount; $day++) {
         array_push($dates, '');
     }
 
-    # Выделение текущей даты
+    # Выделение текущей даты (Оборачиваем в div с классом now)
     if ($__month == date('m', strtotime('now'))) {
-        $currentDate = date('d', strtotime('now'));
-        $currentDateIndex = array_search($currentDate, $dates);
+        $currentDate              = date('d', strtotime('now'));
+        $currentDateIndex         = array_search($currentDate, $dates);
         $dates[$currentDateIndex] = "<div class='now'>{$dates[$currentDateIndex]}</div>";
     }
 
-    $holidaysInMonth = array();
+    # Выделение праздников в месяце (Оборачиваем в div с классом holiday)
     foreach (HOLIDAYS_ARR as $index => $date) {
-        if (preg_match('/(\d{2})\.'.$__month.'/ui', $date, $matches)) {
-            $index = array_search($matches[1], $dates);
+        if (preg_match('/(\d{2})\.' . $__month . '/ui', $date, $matches)) {
+            $index         = $matches[1] + $beginEmptyDaysCount - 1;
             $dates[$index] = "<div class='holiday'>{$dates[$index]}</div>";
         }
     }
-    
-    foreach(range(1, count($dates) / 7) as $week) {
+
+    # Пробегаем по неделям, каждая неделя - строка таблицы
+    foreach (range(1, count($dates) / DAYS_IN_WEEK) as $week) {
         $html .= '<tr>';
-        foreach (range(1,7) as $day) {
-            $html .= '<td>'.array_shift($dates).'</td>';
+
+        # Пробегаем по дням недели, каждый день недели - это столбец строки
+        foreach (range(1, DAYS_IN_WEEK) as $day) {
+            $html .= '<td>' . array_shift($dates) . '</td>';
         }
+
+        //
         $html .= '</tr>';
     }
 
+    # Закрываем таблицу
     $html .= '</table>';
 
+    # Возвращаем HTML код
     return $html;
 }
 
+/**
+ * Возвращает шапку HTML страницы
+ *
+ * @return string HTML код шапки страницы.
+ */
 function getHeader()
 {
     $html = '<!DOCTYPE html>
@@ -95,8 +131,8 @@ function getHeader()
                         <nav class="navbar navbar-light bg-light">
                             <div class="container-fluid">
                                 <a class="navbar-brand" href="#">
-                                    <img src="img/calendar.png" alt="Icon" width="30" height="30" class="d-inline-block align-text-top">
-                                    Calendar
+                    <img src="img/calendar.png" alt="Icon" width="30" height="30" class="d-inline-block align-text-top">
+                    Calendar
                                 </a>
                             </div>
                         </nav>
@@ -105,9 +141,13 @@ function getHeader()
                         <div class="col-md-3"></div>
                         <div class="col-md-3">
                             <select class="form-select" id="year" onchange="update()">';
+
+    # Отображение option`ов внутри select 
     foreach (range(MIN_YEAR, MAX_YEAR) as $year) {
         $html .= "<option value='{$year}'>$year</option>";
     }
+
+    //
     $html .= '</select>
             </div>
             <div class="col-md-3">
@@ -133,10 +173,16 @@ function getHeader()
 
             </div>
             <div class="col-md-8" id="calendar">';
-    
+
+    //
     return $html;
 }
 
+/**
+ * Возвращает подвал HTML страницы
+ *
+ * @return string HTML код подвала страницы.
+ */
 function getFooter()
 {
     return '</div>
@@ -147,4 +193,3 @@ function getFooter()
 </body>
 </html>';
 }
-                
