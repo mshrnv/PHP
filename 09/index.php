@@ -1,8 +1,13 @@
 <?php
 
-require_once('Template.php');
-define('STEP', 50);
+#Подключаем шаблонизатор
+require_once 'Template.php';
 
+#Определение констант
+define('STEP', 50);
+define('TEMPLATE_FILE_PATH', './templates/index.html');
+
+#Массив машин
 $carsArr = array(
     array('manufactor' => 'BMW', 'model' => 'Smart', "hp" => 45),
     array('manufactor' => 'BMW', 'model' => 'X1', "hp" => 50),
@@ -13,82 +18,57 @@ $carsArr = array(
     array('manufactor' => 'Lada', 'model' => 'Granta Turbo', "hp" => 190),
 );
 
+#Массив цветов
 $colorsArr = array('lightcoral', 'yellow', 'lightgreen', 'lightblue', 'purple');
 
+#Распределяем все машины по группам лошадиных сил
 $carGroupsArr = array();
 foreach ($carsArr as $carArr) {
-    $carGroupsArr[ getHpGroup($carArr['hp']) ][$carArr['manufactor']][] = $carArr;
+    $carGroupsArr[getHpGroup($carArr['hp'])][$carArr['manufactor']][] = $carArr;
 }
 
-//print_r($carGroupsArr);
+#Берем шаблон
+$templateHtml = file_get_contents(TEMPLATE_FILE_PATH);
 
-$templateHtml = '
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Document</title>
-        <style>
-            table{
-                border-collapse: collapse;
-            }
-            td{
-                border: 1px solid black;
-                padding: 0px 5px;
-            }
-        </style>
-    </head>
-    <body>
-        <table>
-            <tr>
-                <td><b>Manufactor</b></td>
-                <td><b>Model</b></td>
-                <td><b>HP</b></td>
-            </tr>
-            <!-- car_group -->
-                <tr style="background-color:<!-- .$color -->; text-align:center;"><td colspan="3"><!-- .$hp_group --></td></tr>
-                <!-- manufactor -->
-                    <tr><td rowspan="<!-- .$rowspan -->" ><!-- .$manufactor--></td>
-                        <!-- model[1] -->                         
-                                <td><!-- .$model --></td>
-                                <td><!-- .$hp --></td>
-                            </tr>
-                            <tr>
-                        <!-- model_ends -->
-                        <!-- model -->
-                                <td><!-- .$model --></td>
-                                <td><!-- .$hp --></td>
-                            </tr>
-                            <tr>
-                        <!-- model_ends -->
-                    </tr>
-                <!-- manufactor_ends -->
-            <!-- car_group_ends -->
-        </table>
-    </body>
-    </html>
-';
-//print_r($carGroupsArr);
+#Формирование массива для шаблонизатора
 $groupCounter = 0;
-foreach ($carGroupsArr as $hp_group => $carGroup) {
+foreach ($carGroupsArr as $hpGroup => $carGroup) {
     $manufactorCounter = 0;
     foreach ($carGroup as $manufactor => $cars) {
-        $templateDataArr['car_group'][$groupCounter]['manufactor'][$manufactorCounter]['model'] = $cars;
+
+        # Для каждой марки определяем массив моделей этой марки, производителя
+        # И количество моделей машин этой марки в текущей группе
+        $templateDataArr['car_group'][$groupCounter]['manufactor'][$manufactorCounter]['model']      = $cars;
         $templateDataArr['car_group'][$groupCounter]['manufactor'][$manufactorCounter]['manufactor'] = $manufactor;
-        $templateDataArr['car_group'][$groupCounter]['manufactor'][$manufactorCounter]['rowspan'] = count($cars);
+        $templateDataArr['car_group'][$groupCounter]['manufactor'][$manufactorCounter]['rowspan']    = count($cars);
         $manufactorCounter++;
     }
-    $templateDataArr['car_group'][$groupCounter]['hp_group'] = $hp_group;
+
+    #Каждой группе машин определяем ее название(например: '100-150') и цвет
+    $templateDataArr['car_group'][$groupCounter]['hp_group'] = $hpGroup;
     $templateDataArr['car_group'][$groupCounter]['color']    = array_shift($colorsArr);
     $groupCounter++;
 }
 
-//print_r($templateDataArr);
+//
 print Template::build($templateHtml, $templateDataArr);
 
+/**
+ * Возвращает даипозон Л.С., которому принадлежит автомобиль.
+ * Пример:
+ *     134 => '100-150'
+ *     50  => '50-100'
+ *
+ * @param integer $__hp Лошадиные силы автомобиля.
+ * 
+ * @return string Название группы, которой принадлежит автомобиль.
+ */
 function getHpGroup(int $__hp)
 {
+    # Окргляем количество лошадиных сил в меньшую сторону до числа кратного STEP
     $min = STEP * floor($__hp / STEP);
     $max = $min + STEP;
-    return $min.'-'.$max.' HP';
+
+    # Возвращаем название диапозона лошадиных сил
+    return $min . '-' . $max . ' HP';
 }
