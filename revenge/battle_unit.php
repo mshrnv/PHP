@@ -57,7 +57,7 @@ class Battle
         $attack  = '__allies';
         $defence = '__enemies';
 
-        while (!empty($this->__allies) && !empty($this->__enemies)) {
+        for($i = 0;$i < 4; $i++) {
             $summaryDamage = 0;
             foreach ($this -> $attack as $unit) {
                 $summaryDamage += $unit->getDamage();
@@ -72,12 +72,7 @@ class Battle
                 }
             }
 
-            foreach ($died as $unit) {
-                unset($this->$defence[array_search($unit, $this->$defence)]);
-            }
-            print_r('Attack: '.$attack."\n");
-            var_dump($this -> $attack);
-            var_dump($this -> $defence);
+            $this -> $defence = array_diff($this -> $defence, $died);
 
             $temp    = $attack;
             $attack  = $defence;
@@ -112,18 +107,3 @@ class Unit
         $this->__health = $this->__health - $damage;
     }
 }
-
-$abramov = new Unit(100, 45);
-$takhkaev = new Unit(100, 40);
-$shibaev = new Unit(25, 5);
-
-$aleshin = new Unit(100, 20);
-$milomaev = new Unit(120, 70);
-$shoronov = new Unit(100, 15);
-
-$a673 = [$abramov, $takhkaev, $shibaev];
-$a675 = [$aleshin, $milomaev, $shoronov];
-
-$battle = new Battle($a673, $a675);
-$battle -> fight();
-var_dump($battle -> getAlliesCount());
