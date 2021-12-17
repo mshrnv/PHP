@@ -25,7 +25,7 @@ function isAuthorized()
  *
  * @return string HTML-код блока с ошибкой.
  */
-function getAuthError()
+function getAuthErrorHtml()
 {
     return '<div class="alert alert-warning" role="alert">
                 Ошибка авторизации: проверьте введенные данные.
@@ -37,10 +37,11 @@ function getAuthError()
  *
  * @param string $__text     Текст сообщения.
  * @param string $__username Имя пользователя.
+ * @param string $__ip       IP-адрес клиента.
  * 
  * @return void
  */
-function sendMessage(string $__text, string $__username)
+function sendMessage(string $__text, string $__username, string $__ip)
 {
 
     # Получаем массив сообщений
@@ -51,7 +52,7 @@ function sendMessage(string $__text, string $__username)
         'username'     => $__username,
         'datetime'     => date('j.m.Y H:i:s'),
         'message_text' => trim($__text),
-        'user_ip'      => $_SERVER['REMOTE_ADDR'],
+        'user_ip'      => $__ip,
     );
     array_unshift($messagesArr, $messageArr);
 
@@ -64,10 +65,11 @@ function sendMessage(string $__text, string $__username)
  *
  * @param integer $__messageId   ID сообщения.
  * @param string  $__messageText Текст сообщения.
+ * @param string  $__username    Имя пользователя.
  * 
  * @return void
  */
-function editMessage(int $__messageId, string $__messageText)
+function editMessage(int $__messageId, string $__messageText, string $__username)
 {
 
     #Получаем массив сообщений
@@ -78,7 +80,7 @@ function editMessage(int $__messageId, string $__messageText)
 
     #Добавляем два новых поля: дата изменения, username изменявшего
     $messagesArr[$__messageId]['edited_datetime'] = date('j.m.Y H:i:s');
-    $messagesArr[$__messageId]['edited_username'] = $_SESSION['username'];
+    $messagesArr[$__messageId]['edited_username'] = $__username;
 
     #Запись в файл
     putContentInFile(GUESTBOOK_FILE_NAME, serialize($messagesArr));
@@ -251,7 +253,7 @@ function getMessages(int $__currentPage, int $__numberOfPages)
         ' | '.$messageArr['datetime'].'</h6>
          <p class="card-text" style="margin-bottom:5px; font-size: 18px;">'.$messageArr['message_text'].'</p>'
         .getEditLabel($messageId).' 
-         '.getEditAndCloseButtons($messageArr['username'], $messageId).'</div></div>';
+         '.getEditAndCloseButtonsHtml($messageArr['username'], $messageId).'</div></div>';
     }
 
     #Возвращаем HTML-код сообщений на странице
@@ -267,6 +269,8 @@ function getMessages(int $__currentPage, int $__numberOfPages)
  */
 function getIp(string $__ip)
 {
+    # Вывожу имя польователя, ip и дату через '| '
+    # Посмотрите на самой странице, так визуально понятнее разделяются блоки информации
     return $_SESSION['access_level'] !== 1 ? '' : '| '.$__ip;
 }
 
@@ -279,7 +283,7 @@ function getIp(string $__ip)
  * 
  * @return string HTML-код или пустая строка.
  */
-function getEditAndCloseButtons(string $__username, int $__id)
+function getEditAndCloseButtonsHtml(string $__username, int $__id)
 {
 
     #Определяем уровень доступа
@@ -361,7 +365,7 @@ function printSignInForm(bool $__errorFlag)
                 <button name="action" class="btn btn-lg btn-outline-primary btn-block" type="submit" value="SignIn">Sign in</button>
                 <button name="action" class="btn btn-lg btn-outline-primary btn-block" type="submit" value="SignInAsGuest">Sign in as guest</button>
             </form>
-            '.($__errorFlag ? getAuthError() : '').'
+            '.($__errorFlag ? getAuthErrorHtml() : '').'
         </div></body></html>';
 }
 

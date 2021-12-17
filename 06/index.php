@@ -61,12 +61,15 @@ if ($deleteMessageId != '') {
 
 # Редактирование сообщения
 if ($editMessageId != '' && trim($message) != '') {
-    editMessage($editMessageId, $message);
+    editMessage($editMessageId, $message, $_SESSION['username']);
 }
 
 #Отправка нового сообщения
 if ($action == "SendMessage" && trim($message) != '') {
-    sendMessage($message, $_SESSION['access_level'] == 3 ? $guestname : $_SESSION['username']);
+    sendMessage($message,
+                $_SESSION['access_level'] == 3 ? $guestname : $_SESSION['username'],
+                $_SERVER['REMOTE_ADDR']
+    );
 }
 
 #По умолчанию показываем первую страницу сообщений
