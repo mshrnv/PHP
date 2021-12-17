@@ -3,7 +3,7 @@
 #Template goes as a part of Simpla CMS Libraries, by Sergey Sorokin (aka dCm)
 #Please contact dev@simpla.ru for terms of use
 ################################################################################
-
+ 
 class Template {
 #Вид шаблона
 #   <!-- cycle[-4] -->   - объявление цикла, в квадратных скобках ограничения на количество итераций. Знак минус - считать от размера данных.
