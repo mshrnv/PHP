@@ -6,6 +6,7 @@ require_once 'Template.php';
 #Определение констант
 define('STEP', 50);
 define('TEMPLATE_FILE_PATH', './templates/index.html');
+define('COLOR_RANGE', 210);
 
 #Массив машин
 $carsArr = array(
@@ -16,6 +17,8 @@ $carsArr = array(
     array('manufactor' => 'Hyundai', 'model' => 'i30', "hp" => 120),
     array('manufactor' => 'Lada', 'model' => 'Granta', "hp" => 170),
     array('manufactor' => 'Lada', 'model' => 'Granta Turbo', "hp" => 190),
+    array('manufactor' => 'Toyota', 'model' => 'Camry', "hp" => 249),
+    array('manufactor' => 'Mercedes-Benz', 'model' => 'E63s', "hp" => 580),
 );
 
 #Массив цветов
@@ -27,11 +30,11 @@ foreach ($carsArr as $carArr) {
     $carGroupsArr[getHpGroup($carArr['hp'])][$carArr['manufactor']][] = $carArr;
 }
 
-#Берем шаблон
-$templateHtml = file_get_contents(TEMPLATE_FILE_PATH);
+$colorStep = COLOR_RANGE / (count($carGroupsArr) - 1);
 
 #Формирование массива для шаблонизатора
 $groupCounter = 0;
+$color        = 0;
 foreach ($carGroupsArr as $hpGroup => $carGroup) {
     $manufactorCounter = 0;
     foreach ($carGroup as $manufactor => $cars) {
@@ -46,12 +49,14 @@ foreach ($carGroupsArr as $hpGroup => $carGroup) {
 
     #Каждой группе машин определяем ее название(например: '100-150') и цвет
     $templateDataArr['car_group'][$groupCounter]['hp_group'] = $hpGroup;
-    $templateDataArr['car_group'][$groupCounter]['color']    = array_shift($colorsArr);
+    // TODO: хм, то есть еси групп будет бульше чем цветов, то все сломается, давай вычислять цвет
+    $templateDataArr['car_group'][$groupCounter]['color']    = "hsl({$color}, 100%, 50%)";
     $groupCounter++;
+    $color += $colorStep;
 }
 
 //
-print Template::build($templateHtml, $templateDataArr);
+print Template::build(file_get_contents(TEMPLATE_FILE_PATH), $templateDataArr);
 
 /**
  * Возвращает даипозон Л.С., которому принадлежит автомобиль.
@@ -64,11 +69,11 @@ print Template::build($templateHtml, $templateDataArr);
  * @return string Название группы, которой принадлежит автомобиль.
  */
 function getHpGroup(int $__hp)
-{
+{   
     # Окргляем количество лошадиных сил в меньшую сторону до числа кратного STEP
     $min = STEP * floor($__hp / STEP);
     $max = $min + STEP;
 
     # Возвращаем название диапозона лошадиных сил
-    return $min . '-' . $max . ' HP';
+    return $min.'-'.$max.' HP';
 }
