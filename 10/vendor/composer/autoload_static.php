@@ -7,8 +7,12 @@ namespace Composer\Autoload;
 class ComposerStaticInitc00da7f20c8097db5814fe95c5e58df7
 {
     public static $classMap = array (
+        'BaseDB' => __DIR__ . '/../..' . '/lib/BaseDB.php',
+        'BasePage' => __DIR__ . '/../..' . '/lib/BasePage.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'GuestbookPage' => __DIR__ . '/../..' . '/lib/GuestbookPage.php',
+        'GuestbookPage' => __DIR__ . '/../..' . '/lib/pages/GuestbookPage.php',
+        'MessageDB' => __DIR__ . '/../..' . '/lib/db/MessageDB.php',
+        'Template' => __DIR__ . '/../..' . '/lib/Template.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

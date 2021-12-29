@@ -6,6 +6,10 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'BaseDB' => $baseDir . '/lib/BaseDB.php',
+    'BasePage' => $baseDir . '/lib/BasePage.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
-    'GuestbookPage' => $baseDir . '/lib/GuestbookPage.php',
+    'GuestbookPage' => $baseDir . '/lib/pages/GuestbookPage.php',
+    'MessageDB' => $baseDir . '/lib/db/MessageDB.php',
+    'Template' => $baseDir . '/lib/Template.php',
 );
