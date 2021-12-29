@@ -1,0 +1,17 @@
+{
+    "name": "user/10",
+    "description": "GuestBook",
+    "type": "project",
+    "autoload": {
+        "classmap": [
+            "lib/"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Misha Shoronov",
+            "email": "shmd@fsb.ru"
+        }
+    ],
+    "require": {}
+}
