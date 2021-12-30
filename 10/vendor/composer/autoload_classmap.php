@@ -11,5 +11,7 @@ return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'GuestbookPage' => $baseDir . '/lib/pages/GuestbookPage.php',
     'MessageDB' => $baseDir . '/lib/db/MessageDB.php',
+    'SignupPage' => $baseDir . '/lib/pages/Signup.php',
     'Template' => $baseDir . '/lib/Template.php',
+    'UserDB' => $baseDir . '/lib/db/UserDB.php',
 );

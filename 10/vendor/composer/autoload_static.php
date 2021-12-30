@@ -12,7 +12,9 @@ class ComposerStaticInitc00da7f20c8097db5814fe95c5e58df7
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'GuestbookPage' => __DIR__ . '/../..' . '/lib/pages/GuestbookPage.php',
         'MessageDB' => __DIR__ . '/../..' . '/lib/db/MessageDB.php',
+        'SignupPage' => __DIR__ . '/../..' . '/lib/pages/Signup.php',
         'Template' => __DIR__ . '/../..' . '/lib/Template.php',
+        'UserDB' => __DIR__ . '/../..' . '/lib/db/UserDB.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
